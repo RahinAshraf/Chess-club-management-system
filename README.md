@@ -7,6 +7,7 @@ The members of the team are:
 - Name: Avner Bensoussan, ID:
 - Name: Adnan Salah, ID:
 - Name: Xufeng Bai, ID:
+
 *Add any further information about the team here, such as absent team members.*
 
 ## Project structure
