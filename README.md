@@ -1,11 +1,12 @@
-# Team *enter team name here* Small Group project
+# Team Navy-R Small Group project
 
 ## Team members
 The members of the team are:
-- *Enter member 1*
-- *Enter member 2*
-- *Enter member 3*
-- *Enter member 4*
+- Name: Rahin Ashraf, ID: 20034059
+- Name: Shmeelok Chakraborty, ID:
+- Name: Avner Bensoussan, ID:
+- Name: Adnan Salah, ID:
+- Name: Xufeng Bai, ID:
 *Add any further information about the team here, such as absent team members.*
 
 ## Project structure
