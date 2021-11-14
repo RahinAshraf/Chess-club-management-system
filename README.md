@@ -3,10 +3,10 @@
 ## Team members
 The members of the team are:
 - Name: Rahin Ashraf, ID: 20034059
-- Name: Shmeelok Chakraborty, ID:
-- Name: Avner Bensoussan, ID:
-- Name: Adnan Salah, ID:
-- Name: Xufeng Bai, ID:
+- Name: Shmeelok Chakraborty, ID: 20040611
+- Name: Avner Bensoussan, ID: 20013502
+- Name: Adnan Salah, ID: 19066445
+- Name: Xufeng Bai, ID: 20058729
 
 *Add any further information about the team here, such as absent team members.*
 
