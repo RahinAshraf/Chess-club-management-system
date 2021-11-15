@@ -5,16 +5,16 @@
  .alert {
     border-radius: 0px;
   }
-  
-  
+
+
   /*
    * Cover page
    */
-  
+
   .content {
     padding-top: 10px;
   }
-  
+
   #cover-image {
     background-image: url('images/chess-king-image.png') no-repeat center center fixed;
     -webkit-background-size: cover;
@@ -22,28 +22,28 @@
     background-size: cover;
     -o-background-size: cover;
   }
-  
+
   .h-100 {
     min-height: 100vh;
     height: 100vh;
   }
-  
+
   .vcenter-item{
       display: flex;
       align-items: center;
   }
-  
+
   /*
    * Cover page
    */
   h1.cover-heading {
     font-size: 4rem;
   }
-  
+
   p.cover-text {
     font-size: 1.7rem;
   }
-  
+
   .cover-card {
     background-color: rgba(245, 245, 245, 0.6);
     max-width: 30rem;
@@ -56,35 +56,35 @@
   .cover-card-block {
     opacity: 1
   }
-  
-  
+
+
   /*
    * forms
    */
   .nolabel label {
     display: none;
   }
-  
+
   ul.errorlist {
     list-style-type: none;
     padding: 0;
     margin: 0;
   }
-  
+
   /*
    * Typefaces
    */
-  
+
   .low-key {
     color: #777777;
     font-weight: 300;
   }
-  
+
   .list-title {
     margin-top: 10px;
     margin-bottom: 20px;
   }
-  
+
   /*
    * Profile
    */
@@ -93,54 +93,54 @@
     clear:both;
     float:left;
   }
-  
+
   .profile-text {
     overflow:hidden;
     padding-left:20px
   }
-  
+
   h3.profile-title {
     margin-bottom: 0px;
   }
-  
+
   .profile-username {
     color: #777777;
     font-weight: 300;
     font-style: italic;
   }
-  
+
   .profile-bio {
     font-size: 1.1rem;
   }
-  
+
   .profile-statistics {
     color: #777777;
     font-weight: 300;
     display: block;
   }
-  
+
   .profile-statistics-item {
     display: block;
     padding-right: 50px;
   }
-  
+
   /*
    * Post
    */
   .post-author {
     margin-bottom: 0px;
-  
+
   }
-  
+
   .post-author-fullname {
     font-weight: bold;
   }
-  
+
   .post-author-user-details {
     margin-left: 10px;
     color: #777777;
   }
-  
+
   /*
    * Hyperlinks
    */
@@ -152,7 +152,7 @@
     text-decoration: underline;
     color: #0d6efd;
   }
-  
+
   .post-author a {
     text-decoration: none;
     color: black;
@@ -161,4 +161,3 @@
     text-decoration: underline;
     color: black;
   }
-  
