@@ -1,100 +1,41 @@
-{% load static %}
+{% extends 'base.html' %}
+{% block body %}
+<div id="cover-image" class="bg">
+  <div class="container vh-100">
+    <div class="row h-100">
+      <div class="col-12 my-auto">
+        <div class="card cover-card offset-sm-0 offset-md-0 offset-lg-0">
+          <h1 class="cover-heading">Chess Club</h1>
 
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3"
-      crossorigin="anonymous"
-    />
-    <link href="{% static 'custom.css' %}" rel="stylesheet" />
-    <link
-      rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.0/font/bootstrap-icons.css"
-    />
-    <title>Chess club</title>
-  </head>
-
-  <body style="background-image: url({% static 'images/chess-king-image.png' %});">
-    <div id="cover-image">
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div class="container">
-        <a class="navbar-brand" href="{% url 'home' %}"
-          >Chess club management system</a>
-        <button
-          class="navbar-toggler"
-          type="button"
-          data-bs-toggle="collapse"
-          data-bs-target="#navbarSupportedContent"
-          aria-controls="navbarSupportedContent"
-          aria-expanded="false"
-          aria-label="Toggle navigation"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-            <li class="nav-item dropdown">
-              <a
-                class="nav-link"
-                href="#"
-                id="navbarDropdown"
-                role="button"
-                data-bs-toggle="dropdown"
-                aria-expanded="false"
-              >
-                <span class="bi-person-circle"></span>
-              </a>
-              <ul
-                class="dropdown-menu dropdown-menu-end"
-                aria-labelledby="navbarDropdown"
-              >
-                <li><a class="dropdown-item" href="#">Sign up</a></li>
-                <li><hr class="dropdown-divider" /></li>
-                <li><a class="dropdown-item" href="#">Log in</a></li>
-              </ul>
-            </li>
-          </ul>
-          <form class="d-flex"></form>
+          <p>
+            <a href='{% url 'sign_up' %}' class="btn btn-lg btn-secondary">
+              Sign up
+            </a>
+          </p>
+          <p>
+          </p>
         </div>
-    </nav>
-<br>
-    
-      <div class="card cover-card offset-sm-0 offset-md-0 offset-lg-0" >
-        <p class="">Welcome to our Chess club management system! Here we provide the arrangement for 
-        competitive chess matches and tournaments. Our system consists of clubs which you can join for free. <br><br>
+        <div class="card cover-card offset-sm-3 offset-md-5 offset-lg-8" >
+          <p class="">Welcome to our Chess club management system! Here we provide the arrangement for
+          competitive chess matches and tournaments. Our system consists of clubs which you can join for free. <br><br>
 
-        Are you a professional chess player? If so, bring it on! Or are you someone who is new to chess, trying 
-        to get involed in the sport? Then don't fear, we accept all new players regardless of your chess skill level! <br><br>
+          Are you a professional chess player? If so, bring it on! Or are you someone who is new to chess, trying
+          to get involed in the sport? Then don't fear, we accept all new players regardless of your chess skill level! <br><br>
 
-        <b>Opening times</b>
-        <br>
-        Monday: 8am - 6pm<br>
-        Tuesday: 8am - 6pm<br>
-        Wednesday: 8am - 6pm<br>
-        Thursday: 8am - 7pm<br>
-        Friday: 8am - 6pm<br>
-        Saturday: 8am - 6pm<br>
-        Sunday: Closed<br>
-        
-        </p>
+          <b>Opening times</b>
+          <br>
+          Monday: 8am - 6pm<br>
+          Tuesday: 8am - 6pm<br>
+          Wednesday: 8am - 6pm<br>
+          Thursday: 8am - 7pm<br>
+          Friday: 8am - 6pm<br>
+          Saturday: 8am - 6pm<br>
+          Sunday: Closed<br>
+
+          </p>
+        </div>
       </div>
     </div>
-  
-   
-    <script
-      src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.10.2/dist/umd/popper.min.js"
-      integrity="sha384-7+zCNj/IqJ95wo16oMtfsKbZ9ccEh31eOz1HGyDuCQ6wgnyJNSYdrPa03rtR1zdB"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"
-      integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13"
-      crossorigin="anonymous"
-    ></script>
-  </body>
-</html>
+  </div>
+</div>
+{% endblock %}
