@@ -56,5 +56,33 @@ class SignUpForm(forms.ModelForm):
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
 
-    username = forms.CharField(label="Username")
+    email = forms.EmailField(label="Email")
     password = forms.CharField(label="Password", widget=forms.PasswordInput())
+
+class UserForm(forms.ModelForm):
+    """Form to update user profiles."""
+
+    class Meta:
+        """Form options."""
+
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'chess_experience_level', 'public_bio', 'personal_statement']
+        widgets = { 'public_bio': forms.Textarea(), 'personal_statement': forms.Textarea()}
+
+
+class PasswordForm(forms.Form):
+    """Form enabling users to change their password."""
+
+    password = forms.CharField(label='Current password', widget=forms.PasswordInput())
+    new_password = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(),
+        validators=[RegexValidator(
+            regex=r'^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9]).*$',
+            message='Password must contain an uppercase character, a lowercase '
+                    'character and a number'
+            )]
+    )
+    password_confirmation = forms.CharField(label='Password confirmation', widget=forms.PasswordInput())
+
+    

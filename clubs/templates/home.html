@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
-
+{% load static %}
 <head>
-<style>
+    <style>
         body, html {
         height: 100%;
         margin: 0;
@@ -19,13 +19,10 @@
         background-repeat: no-repeat;
         background-size: cover;
       }
-
     </style>
-
-
 </head>
 {% block body %}
-<div id="cover-image" class="bg">
+<div style="background-image: url({% static 'images/chess-king-image.png' %});" class="bg">
   <div class="container vh-100">
     <div class="row h-100">
       <div class="col-12 my-auto">

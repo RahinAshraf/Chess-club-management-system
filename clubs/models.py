@@ -6,6 +6,7 @@ from django.utils.translation import ugettext_lazy as _
 from django.core.validators import MinValueValidator
 from libgravatar import Gravatar
 from django.utils import timezone
+
 class UserManager(BaseUserManager):
 
     use_in_migrations = True
