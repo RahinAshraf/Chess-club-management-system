@@ -19,7 +19,28 @@
     <title>Chess club</title>
   </head>
 
-  <body style="background-image: url({% static 'images/chess-king-image.png' %});">
+  <style>
+    body, html {
+    height: 100%;
+    margin: 0;
+    }
+
+  .bg {
+    /* The image used */
+    background-image: url("images/chess-king-image.png");
+
+    /* Full height and width */
+    height: 100%; 
+    width:100%
+
+    /* Center and scale the image nicely */
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+</style>
+
+  <body style="background-image: url({% static 'images/chess-king-image.png' %});" class="bg">
     <div id="cover-image">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
       <div class="container">
