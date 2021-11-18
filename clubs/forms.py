@@ -2,7 +2,8 @@
 from django import forms
 from django.core.validators import RegexValidator
 from .models import User
-
+from .models import MembershipType
+from .Constants import consts
 class SignUpForm(forms.ModelForm):
     """Form enabling unregistered users to sign up."""
 
@@ -34,7 +35,7 @@ class SignUpForm(forms.ModelForm):
             self.add_error('password_confirmation', 'Confirmation does not match password.')
 
     def save(self):
-        """Create a new user."""
+        """Create a new user and make the user an applicant."""
 
         super().save(commit=False)
         user = User.objects.create_user(
@@ -46,4 +47,8 @@ class SignUpForm(forms.ModelForm):
             public_bio=self.cleaned_data.get('public_bio'),
             personal_statement=self.cleaned_data.get('personal_statement'),
         )
+        self.make_applicant(user=user)
         return user
+    
+    def make_applicant(self,user):
+        MembershipType.objects.create(user = user, type = consts.APPLICANT)

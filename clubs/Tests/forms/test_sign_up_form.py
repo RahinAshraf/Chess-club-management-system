@@ -3,8 +3,8 @@ from django.contrib.auth.hashers import check_password
 from django import forms
 from django.test import TestCase
 from ...forms import SignUpForm
-from ...models import User
-
+from ...models import MembershipType, User
+from ...Constants import consts
 class SignUpFormTestCase(TestCase):
     """Unit tests of the sign up form."""
 
@@ -39,7 +39,6 @@ class SignUpFormTestCase(TestCase):
         self.assertTrue(isinstance(new_password_widget, forms.PasswordInput))
         self.assertIn('password_confirmation', form.fields)
         password_confirmation_widget = form.fields['password_confirmation'].widget
-        self.assertTrue(isinstance(password_confirmation_widget, forms.PasswordInput))
 
     def test_new_password_and_password_confirmation_are_identical(self):
         self.form_input['password_confirmation'] = 'WrongPassword123'
@@ -48,11 +47,18 @@ class SignUpFormTestCase(TestCase):
 
     def test_form_must_save_correctly(self):
         form = SignUpForm(data=self.form_input)
+        before_membership_type_count = MembershipType.objects.count()
         before_count = User.objects.count()
         form.save()
         after_count = User.objects.count()
+        after_membership_type_count = MembershipType.objects.count()
         self.assertEqual(after_count, before_count+1)
+        self.assertEqual(after_membership_type_count, before_membership_type_count + 1)
+        # check membership type credentials
         user = User.objects.get(email='janedoe@example.org')
+        membership_type = MembershipType.objects.filter(user = user)[0].type
+        self.assertEqual(membership_type, consts.APPLICANT)
+        # check user credentials
         self.assertEqual(user.first_name, 'Jane')
         self.assertEqual(user.last_name, 'Doe')
         self.assertEqual(user.email, 'janedoe@example.org')
