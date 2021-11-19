@@ -32,6 +32,10 @@ class UserManager(BaseUserManager):
     def create_superuser(self, email, password, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('first_name',"Admin")
+        extra_fields.setdefault('last_name',"Admin")
+        extra_fields.setdefault("chess_experience_level", 1)
+        extra_fields.setdefault("personal_statement","Admin Statement")
 
         if extra_fields.get('is_staff') is not True:
             raise ValueError(
