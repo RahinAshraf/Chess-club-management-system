@@ -100,6 +100,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         """Return a URL to a miniature version of the user's gravatar."""
         return self.gravatar(size=60)
 
+    def full_name(self):
+        return f'{self.first_name} {self.last_name}'
+
     chess_experience_level = models.IntegerField(blank=False, validators = [MinValueValidator(1)])
     public_bio = models.CharField(blank=True, max_length=520) # using CharField for making validation of max_length possible
     personal_statement = models.TextField(blank=False)
@@ -108,4 +111,3 @@ class User(AbstractBaseUser, PermissionsMixin):
 class MembershipType(models.Model):
     user = models.OneToOneField(User, on_delete = models.CASCADE, primary_key = True,)
     type = models.CharField(blank = False, max_length = 20)
-
