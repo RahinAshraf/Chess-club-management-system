@@ -4,6 +4,8 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.utils.translation import ugettext_lazy as _
 from django.core.validators import MinValueValidator
+from django.core.exceptions import ValidationError
+from .Constants import consts
 from libgravatar import Gravatar
 from django.utils import timezone
 
@@ -47,6 +49,17 @@ class UserManager(BaseUserManager):
             )
 
         return self._create_user(email, password, **extra_fields)
+
+class MembershipTypeManager(models.Manager):
+    def create(self, **obj_data):
+        type = obj_data['type'] 
+        if type == consts.CLUB_OWNER:
+            if len(MembershipType.objects.filter(type = type)) >= 1:
+                raise ValueError('There can only be one club owner')
+            else:
+                return super().create(**obj_data)
+        else:
+            return super().create(**obj_data)
 
 class User(AbstractBaseUser, PermissionsMixin):
 
@@ -112,6 +125,27 @@ class User(AbstractBaseUser, PermissionsMixin):
     personal_statement = models.TextField(blank=False)
 
 
+""" Add some custom validator methods which are used for the Membeship Type model """
+
+def validate_club_owner(value):
+    """ Validate the existence of only one club owner. """
+    length = len(MembershipType.objects.filter(type = value))
+    if value == consts.CLUB_OWNER and length != 0:
+        raise ValidationError(
+            _('There can only be one club owner'),
+            params={'value': value},
+        )
+
+def validate_membership_type(value):
+    if value != consts.APPLICANT and value != consts.MEMBER and value != consts.OFFICER and value != consts.CLUB_OWNER:
+        raise ValidationError(
+            _('%(value)s is not a member, officer, applicant or club owner'),
+            params={'value': value},
+        )
+
+
 class MembershipType(models.Model):
     user = models.OneToOneField(User, on_delete = models.CASCADE, primary_key = True,)
-    type = models.CharField(blank = False, max_length = 20)
+    type = models.CharField(blank = False, max_length = 20, validators=[validate_membership_type, validate_club_owner])
+    objects = MembershipTypeManager()
+
