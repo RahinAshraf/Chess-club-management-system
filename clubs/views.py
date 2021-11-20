@@ -23,7 +23,8 @@ def sign_up(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            return redirect('sign_up')
+            login(request,user)
+            return redirect('test')
     else:
         form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})

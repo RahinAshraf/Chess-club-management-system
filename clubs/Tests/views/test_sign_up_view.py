@@ -2,10 +2,11 @@
 from django.contrib.auth.hashers import check_password
 from django.test import TestCase
 from django.urls import reverse
+from ..Log_in_helper import LogInTester
 from ...forms import SignUpForm
 from ...models import User
 from ...models import MembershipType
-class SignUpViewTestCase(TestCase):
+class SignUpViewTestCase(TestCase, LogInTester):
     """Tests of the sign up view."""
 
     def setUp(self):
@@ -46,6 +47,7 @@ class SignUpViewTestCase(TestCase):
         form = response.context['form']
         self.assertTrue(isinstance(form, SignUpForm))
         self.assertTrue(form.is_bound)
+        self.assertFalse(self._is_logged_in())
     
     def test_succesful_sign_up(self):
         before_count = User.objects.count()
@@ -55,7 +57,7 @@ class SignUpViewTestCase(TestCase):
         after_count = User.objects.count()
         self.assertEqual(after_count, before_count+1)
         self.assertEqual(after_membership_type_count, before_membership_type_count + 1)
-        response_url = reverse('sign_up')
+        response_url = reverse('test')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
         user = User.objects.get(email='janedoe@example.org')
         self.assertEqual(user.first_name, 'Jane')
@@ -66,3 +68,4 @@ class SignUpViewTestCase(TestCase):
         self.assertEqual(user.chess_experience_level, 1)
         is_password_correct = check_password('Password123', user.password)
         self.assertTrue(is_password_correct)
+        self.assertTrue(self._is_logged_in())
