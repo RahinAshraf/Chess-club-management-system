@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from .models import User, MembershipType
 from django.core.exceptions import ObjectDoesNotExist
+from .Constants import consts
 
 # Create your views here.
 
@@ -70,6 +71,32 @@ def profile(request):
         form = UserForm(instance=current_user)
     return render(request, 'profile.html', {'form': form})
 
+@login_required
+def promote(request, user_id):
+    """user_id: the primary key of the user being promoted to 'member'
+    Officers and Club Owners are able to promote specific applicants to members"""
+    try:
+        user = User.objects.get(pk=user_id)
+        membership = MembershipType.objects.get(user=user)
+
+    except ObjectDoesNotExist:
+        messages.add_message(request, messages.ERROR, "Invalid user to promote")
+        return redirect("user_list")
+    else:
+        current_user = request.user
+
+        if current_user.get_type()==consts.OFFICER or current_user.get_type()==consts.CLUB_OWNER:
+            if (membership.type=="applicant"):
+                membership.type = "member"
+                membership.save()
+                messages.add_message(request, messages.SUCCESS, "User successfully promoted to member")
+            else:
+                messages.add_message(request, messages.INFO, "User is already a member")
+
+            return redirect("user_list")
+        else:
+            messages.add_message(request, messages.ERROR, "You are not are not allowed to promote users")
+            return redirect("user_list")
 
 @login_required
 def password(request):

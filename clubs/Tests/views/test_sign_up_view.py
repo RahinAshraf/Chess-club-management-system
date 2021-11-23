@@ -48,7 +48,7 @@ class SignUpViewTestCase(TestCase, LogInTester):
         self.assertTrue(isinstance(form, SignUpForm))
         self.assertTrue(form.is_bound)
         self.assertFalse(self._is_logged_in())
-    
+
     def test_succesful_sign_up(self):
         before_count = User.objects.count()
         before_membership_type_count = MembershipType.objects.count()

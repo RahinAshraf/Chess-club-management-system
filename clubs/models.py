@@ -121,7 +121,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         return f'{self.first_name} {self.last_name}'
 
     def get_type(self):
-        """Returns the user_type, as in whether the user is an 'applicant','member', etc.
+        """Returns the user's type, as in whether the user is an 'applicant','member', etc.
         If the relationship doesn't exist, return None"""
 
         try:
