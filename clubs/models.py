@@ -52,7 +52,7 @@ class UserManager(BaseUserManager):
 
 class MembershipTypeManager(models.Manager):
     def create(self, **obj_data):
-        type = obj_data['type'] 
+        type = obj_data['type']
         if type == consts.CLUB_OWNER:
             if len(MembershipType.objects.filter(type = type)) >= 1:
                 raise ValueError('There can only be one club owner')
@@ -120,6 +120,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     def full_name(self):
         return f'{self.first_name} {self.last_name}'
 
+    def get_type(self):
+        return MembershipType.objects.get(user=self).type
+
     chess_experience_level = models.IntegerField(blank=False, validators = [MinValueValidator(1)])
     public_bio = models.CharField(blank=True, max_length=520) # using CharField for making validation of max_length possible
     personal_statement = models.TextField(blank=False)
@@ -148,4 +151,3 @@ class MembershipType(models.Model):
     user = models.OneToOneField(User, on_delete = models.CASCADE, primary_key = True,)
     type = models.CharField(blank = False, max_length = 20, validators=[validate_membership_type, validate_club_owner])
     objects = MembershipTypeManager()
-

@@ -49,7 +49,7 @@ class SignUpForm(forms.ModelForm):
         )
         self.make_applicant(user=user)
         return user
-    
+
     def make_applicant(self,user):
         MembershipType.objects.create(user = user, type = consts.APPLICANT)
 
@@ -84,5 +84,3 @@ class PasswordForm(forms.Form):
             )]
     )
     password_confirmation = forms.CharField(label='Password confirmation', widget=forms.PasswordInput())
-
-    

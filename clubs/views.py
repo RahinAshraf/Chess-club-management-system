@@ -7,7 +7,7 @@ from .forms import LogInForm, UserForm, PasswordForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
-from .models import User
+from .models import User, MembershipType
 from django.core.exceptions import ObjectDoesNotExist
 
 # Create your views here.
@@ -92,4 +92,7 @@ def password(request):
 @login_required
 def user_list(request):
     users = User.objects.all()
-    return render(request, 'user_list.html', {'users': users})
+    current_user = request.user
+    type = current_user.get_type()
+
+    return render(request, 'user_list.html', {'users': users, "type": type})

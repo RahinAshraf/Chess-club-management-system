@@ -7,12 +7,23 @@
       <table class="table">
         {% for user in users %}
           <tr>
+            {% if type == 'member' or type == 'applicant' %}
+              <td>
+                <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.username }}" class="rounded-circle" >
+              </td>
+              <td>{{ user.full_name }}</td>
+              <td>{{ user.public_bio }}</td>
+            {% else %}
             <td>
               <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.username }}" class="rounded-circle" >
             </td>
+            <td>{{ user.email }}</td>
             <td>{{ user.full_name }}</td>
-            <td>{{ user.username }}</td>
             <td>{{ user.public_bio }}</td>
+            <td>{{ user.personal_statement }}</td>
+            <td>{{ user.chess_experience_level }}</td>
+            <td>{{ user.date_joined }}</td>
+            {% endif %}
           </tr>
         {% endfor %}
       </table>
