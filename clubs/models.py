@@ -121,7 +121,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         return f'{self.first_name} {self.last_name}'
 
     def get_type(self):
-        return MembershipType.objects.get(user=self).type
+        """Returns the user_type, as in whether the user is an 'applicant','member', etc.
+        If the relationship doesn't exist, return None"""
+
+        try:
+            memberType = MembershipType.objects.get(user=self)
+            return memberType.type
+        except MembershipType.DoesNotExist:
+            return None
 
     chess_experience_level = models.IntegerField(blank=False, validators = [MinValueValidator(1)])
     public_bio = models.CharField(blank=True, max_length=520) # using CharField for making validation of max_length possible

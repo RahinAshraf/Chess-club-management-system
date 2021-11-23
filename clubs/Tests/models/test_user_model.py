@@ -14,7 +14,7 @@ class UserModelTestCase(TestCase):
                     public_bio = 'Hello!!',
                     chess_experience_level = 3,
                     personal_statement = 'I want to play chess!!')
-    
+
 
     def _assert_user_is_valid(self):
         try:
@@ -25,7 +25,7 @@ class UserModelTestCase(TestCase):
     def _assert_user_is_invalid(self):
         with self.assertRaises(ValidationError):
             self.user.full_clean()
-        
+
     def test_valid_user(self):
         self._assert_user_is_valid()
 
@@ -43,7 +43,7 @@ class UserModelTestCase(TestCase):
         self.user.email = 'testCaseNew@example.com'
 
         self._assert_user_is_invalid()
-    
+
     def test_maximum_length_of_first_name(self):
         self.user.first_name = 's' * 51
         self._assert_user_is_invalid()

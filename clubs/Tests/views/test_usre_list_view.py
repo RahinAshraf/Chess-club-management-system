@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
-from clubs.models import User
+from clubs.models import User,MembershipType
 from clubs.Tests.helpers import reverse_with_next
 
 class UserListTest(TestCase):
@@ -25,6 +25,42 @@ class UserListTest(TestCase):
             self.assertContains(response, f'First{user_id}')
             self.assertContains(response, f'Last{user_id}')
             self.assertContains(response, f'Bio {user_id}')
+
+    def test_get_type_for_member(self):
+        user2 = User.objects.create_user(
+            email="member@example.org",
+            password="Pass123",
+            first_name="memberFirst",
+            last_name="memberLast",
+            public_bio="member",
+            chess_experience_level=1,
+            personal_statement="memberPersonal",
+        )
+        MembershipType.objects.create(user=user2,type="member")
+
+        self.client.login(email=user2.email, password='Pass123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'user_list.html')
+        self.assertEqual(response.context['type'], "member")
+
+    def test_get_type_for_officer(self):
+        user2 = User.objects.create_user(
+            email="officer@example.org",
+            password="Pass123",
+            first_name="officerFirst",
+            last_name="officerLast",
+            public_bio="officer",
+            chess_experience_level=1,
+            personal_statement="officerPersonal",
+        )
+        MembershipType.objects.create(user=user2,type="officer")
+
+        self.client.login(email=user2.email, password='Pass123')
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'user_list.html')
+        self.assertEqual(response.context['type'], "officer")
 
     def _create_test_users(self, user_count=10):
         for user_id in range(user_count):
