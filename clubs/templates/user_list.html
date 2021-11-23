@@ -25,7 +25,7 @@
               <td>{{ user.date_joined }}</td>
               <td>{{ user.get_type }}</td>
               {% if user.get_type == 'applicant' %}
-                <td><a href="{% url 'promote' user.id %}">promote to member</a></td>
+                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' user.id %}" role="button">promote to member</a></td>
               {% endif %}
             {% endif %}
           </tr>
