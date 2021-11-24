@@ -28,4 +28,6 @@ urlpatterns = [
     path('password/', views.password, name='password'),
     path('users/', views.user_list, name='user_list'),
     path('promote/<int:user_id>/', views.promote, name='promote'),
+    path('demote/<int:user_id>/', views.demote, name='demote'),
+    path('transfer_ownership/<int:user_id>/', views.transfer_ownership, name='transfer_ownership'),
 ]

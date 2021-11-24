@@ -13,6 +13,20 @@
               </td>
               <td>{{ user.full_name }}</td>
               <td>{{ user.public_bio }}</td>
+            {% elif type == 'officer' %}
+              <td>
+                <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.username }}" class="rounded-circle" >
+              </td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.full_name }}</td>
+              <td>{{ user.public_bio }}</td>
+              <td>{{ user.personal_statement }}</td>
+              <td>{{ user.chess_experience_level }}</td>
+              <td>{{ user.date_joined }}</td>
+              <td>{{ user.get_type }}</td>
+              {% if user.get_type == 'applicant' %}
+                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' user.id %}" role="button">promote to member</a></td>
+              {% endif %}
             {% else %}
               <td>
                 <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.username }}" class="rounded-circle" >
@@ -26,6 +40,13 @@
               <td>{{ user.get_type }}</td>
               {% if user.get_type == 'applicant' %}
                 <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' user.id %}" role="button">promote to member</a></td>
+              {% endif %}
+              {% if user.get_type == 'member' %}
+                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' user.id %}" role="button">promote to officer</a></td>
+              {% endif %}
+              {% if user.get_type == 'officer' %}
+                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'demote' user.id %}" role="button">demote to member</a></td>
+                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'transfer_ownership' user.id %}" role="button">Transfer club ownership</a></td>
               {% endif %}
             {% endif %}
           </tr>

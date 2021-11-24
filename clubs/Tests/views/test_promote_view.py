@@ -79,7 +79,7 @@ class PromoteViewTestCase(TestCase):
         self.assertEqual(messages_list[0].level, messages.ERROR)
 
 
-    def test_promote_already_member(self):
+    def test_promote_member(self):
         applicantMembership = MembershipType.objects.get(pk=self.applicant.pk)
         applicantMembership.type = "member"
         applicantMembership.save()
@@ -90,7 +90,7 @@ class PromoteViewTestCase(TestCase):
         response = self.client.get(self.url, follow=True)
 
         applicantType = MembershipType.objects.get(pk=self.applicant.pk).type
-        self.assertEqual(applicantType, consts.MEMBER)
+        self.assertEqual(applicantType, consts.OFFICER)
 
         response_url = reverse("user_list")
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)

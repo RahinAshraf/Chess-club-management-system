@@ -90,6 +90,10 @@ def promote(request, user_id):
                 membership.type = "member"
                 membership.save()
                 messages.add_message(request, messages.SUCCESS, "User successfully promoted to member")
+            elif (membership.type=="member"):
+                membership.type = "officer"
+                membership.save()
+                messages.add_message(request, messages.INFO, "User successfully promoted to officer")
             else:
                 messages.add_message(request, messages.INFO, "User is already a member")
 
@@ -97,6 +101,63 @@ def promote(request, user_id):
         else:
             messages.add_message(request, messages.ERROR, "You are not are not allowed to promote users")
             return redirect("user_list")
+
+@login_required
+def demote(request, user_id):
+    try:
+        user = User.objects.get(pk=user_id)
+        membership = MembershipType.objects.get(user=user)
+
+    except ObjectDoesNotExist:
+        messages.add_message(request, messages.ERROR, "Invalid user")
+        return redirect("user_list")
+    else:
+        current_user = request.user
+
+        if current_user.get_type()==consts.CLUB_OWNER:
+            if (membership.type=="officer"):
+                membership.type = "member"
+                membership.save()
+                messages.add_message(request, messages.SUCCESS, "User successfully demoted to member")
+
+            return redirect("user_list")
+        else:
+            messages.add_message(request, messages.ERROR, "You are not are not allowed to deomote users")
+            return redirect("user_list")
+
+@login_required
+def transfer_ownership(request, user_id):
+    try:
+        user = User.objects.get(pk=user_id)
+        membership = MembershipType.objects.get(user=user)
+
+    except ObjectDoesNotExist:
+        messages.add_message(request, messages.ERROR, "Invalid user")
+        return redirect("user_list")
+    else:
+        current_user = request.user
+        # current_owner = User.objects.get(pk=request.user_id)
+        owner_membership = MembershipType.objects.get(user=current_user)
+
+        if current_user.get_type()==consts.CLUB_OWNER:
+            if (membership.type=="officer"):
+                owner_membership.type = "officer"
+                owner_membership.save()
+                membership.type = "club_owner"
+                membership.save()
+                messages.add_message(request, messages.SUCCESS, "Ownership successfully transferred")
+            else:
+                messages.add_message(request, messages.ERROR, "You are only allowed to transfer the ownership to an officer")
+                return redirect("user_list")
+                
+
+            return redirect("user_list")
+        else:
+            messages.add_message(request, messages.ERROR, "You are not are not allowed to transfer ownership")
+            return redirect("user_list")
+
+
+
 
 @login_required
 def password(request):
