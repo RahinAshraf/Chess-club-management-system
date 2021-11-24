@@ -3,3 +3,30 @@
 <h1>My First Heading</h1>
 <p>My first paragraph.</p>
 
+{% block content %}
+<div style = "margin-bottom:50px"> 
+    <h1> Welcome to your profile </h1>
+</div>
+<div style="margin-left:20px; margin-bottom:30px">
+    <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.username }}" class="rounded-circle" >
+    <h2 style="font-family: Circular; font-weigth:bold;"> {{ user.full_name }} </h2> 
+</div>
+<div class="card align-items-center d-flex justify-content-center" style="width:500px; margin:0 auto; border:0.5px solid; border-color: rgb(145, 153, 147); border-radius:20px;">
+  <div class="card-body">
+    <h4 class="card-title">Your Details</h4> <br> 
+    <p class="card-text" style = "font-family: Gotham; font-size:25px">
+        Email : {{ user.email }} <br>
+        Membership type : {{ user.get_type }} <br> 
+        Chess Experience Level : {{ user.chess_experience_level }} <br>
+    </p>
+  </div>
+</div>
+<div class="card" style="width:500px; margin:0 auto; margin-top:10px; margin-bottom:10px; border:0.5px solid; border-color: rgb(145, 153, 147) ;border-radius:20px;">
+  <div class="card-body" style="margin-left:25px">
+    <h4 class="card-title">Public Bio</h4>
+    <p class="card-text" style = "font-family: Gotham; font-size:20px">
+        {{ user.public_bio }}
+    </p>
+  </div>
+</div>
+{% endblock %}
