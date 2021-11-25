@@ -1,0 +1,35 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <h1>Clubs</h1>
+        <a class="btn btn-primary btn-sm text-nowrap" href="{% url 'apply_to_club' user.id %}" role="button">Create a new club</a>
+
+      <table class="table">
+      <tr>
+       <td><b>Club name</b></td>
+       <td><b>Club location</b></td>
+       <td><b>Club description</b></td>
+       <td><b>Number of members in the club</b></td>
+       <td><b>Owner gravatar</b></td>
+       <td><b>Owner name</b></td>
+       <td><b>Owner bio</b></td>
+      </tr>
+        {% for club in clubs %}
+          <tr>
+            <td>{{club.name}}</td>
+            <td>{{club.location}}</td>
+            <td>{{club.description}}</td>
+            <td>{{club.number_of_members}}</td>
+            <td><img src="{{ owner.mini_gravatar }}" alt="Gravatar of {{ owner.username }}" class="rounded-circle"></td>
+            <td>{{owner.name}}</td>
+            <td>{{owner.bio}}</td>
+            <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'apply_to_club' user.id %}" role="button">Apply to club</a></td> </tr> 
+        {% endfor %}
+
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
