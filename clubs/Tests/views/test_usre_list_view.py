@@ -10,7 +10,7 @@ class UserListTest(TestCase):
     def setUp(self):
         self.url = reverse('user_list')
         self.user = User.objects.get(first_name='John')
-        self.club = Club.objects.create(name = "Club1", location = 'location1', 
+        self.club = Club.objects.create(club_owner=self.user,name = "Club1", location = 'location1', 
                                         mission_statement = 'We want to allow all to play free chess')
 
     def test_user_list_url(self):

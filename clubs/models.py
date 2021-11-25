@@ -159,6 +159,7 @@ def validate_membership_type(value):
         )
 
 class Club(models.Model):
+    club_owner = models.ForeignKey(User, on_delete = models.CASCADE,)
     name = models.CharField(unique=True, blank=False, max_length=90, primary_key=True)
     location = models.CharField(blank=False, max_length=100)
     mission_statement = models.CharField(blank=False, max_length=800)

@@ -1,8 +1,10 @@
 """Forms for the clubs app."""
 from django import forms
 from django.core.validators import RegexValidator
+from django.db.models import fields
+from django.forms import widgets
 from .models import User
-from .models import MembershipType
+from .models import MembershipType, Club
 from .Constants import consts
 class SignUpForm(forms.ModelForm):
     """Form enabling unregistered users to sign up."""
@@ -83,3 +85,15 @@ class PasswordForm(forms.Form):
             )]
     )
     password_confirmation = forms.CharField(label='Password confirmation', widget=forms.PasswordInput())
+
+
+class CreateNewClubForm(forms.ModelForm):
+
+    class Meta: 
+        #Form options
+        model = Club
+        fields = ['name','location','mission_statement'] 
+      
+
+        
+

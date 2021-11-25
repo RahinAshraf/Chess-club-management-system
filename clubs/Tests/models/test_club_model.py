@@ -1,12 +1,22 @@
 from django.db.utils import IntegrityError
 from django.test import TestCase
-from clubs.models import Club
+from clubs.models import Club, User
 from django.core.exceptions import ValidationError
 
-class MembershipModelTestCase(TestCase):
 
+class MembershipModelTestCase(TestCase):
+ 
+                  
     def setUp(self):
-        self.club = Club.objects.create(name = "Club1", location = 'location1', 
+        self.user = User.objects.create_user(
+                    first_name = 'Test',
+                    last_name = 'Case',
+                    email = 'testCase2@example.com',
+                    password = 'Password123',
+                    public_bio = 'Hello!!',
+                    chess_experience_level = 3,
+                    personal_statement = 'I want to play chess!!')
+        self.club = Club.objects.create(club_owner = self.user,name = "Club1", location = 'location1', 
                                         mission_statement = 'We want to allow all to play free chess')
     
     def _assert_club_is_invalid(self):

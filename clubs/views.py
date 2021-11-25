@@ -3,11 +3,11 @@ from django.http import HttpResponse, response
 from .forms import SignUpForm
 from django.contrib.auth import authenticate, login, logout
 from .helpers import login_prohibited
-from .forms import LogInForm, UserForm, PasswordForm
+from .forms import LogInForm, UserForm, PasswordForm, CreateNewClubForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
-from .models import User, MembershipType
+from .models import User, MembershipType, Club
 from django.core.exceptions import ObjectDoesNotExist
 from .Constants import consts
 
@@ -189,7 +189,7 @@ def user_list(request):
 
 @login_required
 def club_list(request):
-    clubs = User.objects.all()
+    clubs = Club.objects.all()
     current_user = request.user
     type = current_user.get_type()
     return render(request, 'club_list.html', {'clubs': clubs, "type": type})
@@ -200,5 +200,22 @@ def apply_to_club(request, user_id):
     current_user = request.user
     type = current_user.get_type()
     return render(request,'user_list.html', {"type": type})
+
+
+@login_required
+def create_new_club(request):
+    if request.method == 'POST':
+        form = CreateNewClubForm(request.POST)
+        if form.is_valid():
+            club = form.save(commit = False)
+            club.club_owner = request.user
+            club.save()
+            form.save()
+            return redirect('club_list')
+    else:
+        form = CreateNewClubForm()
+    return render(request, 'create_club.html', {'form': form})
+    
+
 
 

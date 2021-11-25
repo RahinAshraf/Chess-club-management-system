@@ -16,7 +16,7 @@ class PromoteViewTestCase(TestCase):
             chess_experience_level=1,
             personal_statement="officerPersonal",
         )
-        self.club = Club.objects.create(name = "Club1", location = 'location1', 
+        self.club = Club.objects.create(club_owner=self.officer,name = "Club1", location = 'location1', 
             mission_statement = 'We want to allow all to play free chess')
         MembershipType.objects.create(user=self.officer,type=consts.OFFICER, club=self.club)
         self.client.login(email=self.officer.email, password='Pass123')

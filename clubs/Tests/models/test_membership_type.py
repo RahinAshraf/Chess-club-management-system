@@ -16,7 +16,7 @@ class MembershipModelTestCase(TestCase):
                     chess_experience_level = 3,
                     personal_statement = 'I want to play chess!!')
         
-        self.club = Club.objects.create(name = "Club1", location = 'location1', 
+        self.club = Club.objects.create(club_owner = self.user,name = "Club1", location = 'location1', 
                                         mission_statement = 'We want to allow all to play free chess')
         
 
@@ -87,10 +87,10 @@ class MembershipModelTestCase(TestCase):
             new_user_membership_type.full_clean()
 
     def test_user_can_be_a_member_of_many_clubs(self):
-        club3 = Club.objects.create(name = "Club3", location = 'location1', 
+        club3 = Club.objects.create(club_owner = self.user,name = "Club3", location = 'location1', 
                                         mission_statement = 'We want to allow all to play free chess')
 
-        club4 = Club.objects.create(name = "Club4", location = 'location1', 
+        club4 = Club.objects.create(club_owner = self.user,name = "Club4", location = 'location1', 
                                     mission_statement = 'We want to allow all to play free chess')
 
         new_user_membership_type = self.membership_type = MembershipType.objects.create(user = self.user, club = club3, type = consts.APPLICANT)
