@@ -6,16 +6,15 @@
       <h1>Users</h1>
       <table class="table">
       <tr>
-       <td><b>Gravatar</b></td>
-       <td><b>Email</b></td>
-       <td><b>Username</b></td>
-       <td><b>Bio</b></td>
-       <td><b>Personal Statement</b></td>
-       <td><b>Experience level</b></td>
-       <td><b>Date joined</b></td>
-       <td><b>Membership type</b></td>
+       <td>Same</td>
+       <td>Same</td>
+       <td>Same</td>
+       <td>Same</td>
+       <td>Same</td>
+       <td>Same</td>
       </tr>
-        {% for user in users %}
+       
+        {% for club in clubs %}
           <tr>
             {% if type == 'member' or type == 'applicant' or type == None %}
               <td>
