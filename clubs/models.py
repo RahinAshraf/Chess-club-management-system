@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
+from django.db.models.expressions import F
 from django.utils.translation import ugettext_lazy as _
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
@@ -158,4 +159,8 @@ class MembershipType(models.Model):
     user = models.OneToOneField(User, on_delete = models.CASCADE, primary_key = True,)
     type = models.CharField(blank = False, max_length = 20, validators=[validate_membership_type, validate_club_owner])
     objects = MembershipTypeManager()
-    
+
+class Club(models.Model):
+    name = models.CharField(unique=True, blank=False, max_length=90, primary_key=True)
+    location = models.CharField(blank=False, max_length=100)
+    mission_statement = models.CharField(blank=False, max_length=800)
