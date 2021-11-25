@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
+from django.db.models.constraints import UniqueConstraint
 from django.db.models.expressions import F
 from django.utils.translation import ugettext_lazy as _
 from django.core.validators import MinValueValidator
@@ -52,15 +53,27 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 class MembershipTypeManager(models.Manager):
+
+    def _is_user_a_part_of_the_same_club(self, user, club):
+        if len(MembershipType.objects.filter(user = user).filter(club = club)) >= 1:
+            return True
+        else:
+            return False
+
     def create(self, **obj_data):
         type = obj_data['type']
-        if type == consts.CLUB_OWNER:
-            if len(MembershipType.objects.filter(type = type)) >= 1:
-                raise ValueError('There can only be one club owner')
+        club = obj_data['club']
+        user = obj_data['user']
+        if self._is_user_a_part_of_the_same_club(user=user, club=club):
+            raise ValueError('User cannot hold multiple positions in the same club')
+        else :
+            if type == consts.CLUB_OWNER:
+                if len(MembershipType.objects.filter(type = type).filter(club = club)) >= 1:
+                    raise ValueError('There can only be one club owner')
+                else:
+                    return super().create(**obj_data)
             else:
                 return super().create(**obj_data)
-        else:
-            return super().create(**obj_data)
 
 class User(AbstractBaseUser, PermissionsMixin):
 
@@ -138,15 +151,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 """ Add some custom validator methods which are used for the Membeship Type model """
 
-def validate_club_owner(value):
-    """ Validate the existence of only one club owner. """
-    length = len(MembershipType.objects.filter(type = value))
-    if value == consts.CLUB_OWNER and length != 0:
-        raise ValidationError(
-            _('There can only be one club owner'),
-            params={'value': value},
-        )
-
 def validate_membership_type(value):
     if value != consts.APPLICANT and value != consts.MEMBER and value != consts.OFFICER and value != consts.CLUB_OWNER:
         raise ValidationError(
@@ -154,13 +158,19 @@ def validate_membership_type(value):
             params={'value': value},
         )
 
-
-class MembershipType(models.Model):
-    user = models.OneToOneField(User, on_delete = models.CASCADE, primary_key = True,)
-    type = models.CharField(blank = False, max_length = 20, validators=[validate_membership_type, validate_club_owner])
-    objects = MembershipTypeManager()
-
 class Club(models.Model):
     name = models.CharField(unique=True, blank=False, max_length=90, primary_key=True)
     location = models.CharField(blank=False, max_length=100)
     mission_statement = models.CharField(blank=False, max_length=800)
+
+
+class MembershipType(models.Model):
+    user = models.ForeignKey(User, on_delete = models.CASCADE,)
+    club = models.ForeignKey(Club, on_delete=models.CASCADE,)
+    type = models.CharField(blank = False, max_length = 20, validators=[validate_membership_type])
+    objects = MembershipTypeManager()
+
+    def clean(self):
+        if self.type == consts.CLUB_OWNER:
+            if len(MembershipType.objects.filter(club = self.club).filter(type = consts.CLUB_OWNER)) >= 1:
+                raise ValidationError('There can only be one club owner')
