@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.test import TestCase
 from django.urls import reverse
 from ...Constants import consts
-from ...models import User,MembershipType
+from ...models import User,MembershipType,Club
 
 class PromoteViewTestCase(TestCase):
 
@@ -16,8 +16,11 @@ class PromoteViewTestCase(TestCase):
             chess_experience_level=1,
             personal_statement="officerPersonal",
         )
-        MembershipType.objects.create(user=self.officer,type=consts.OFFICER)
+        self.club = Club.objects.create(name = "Club1", location = 'location1', 
+            mission_statement = 'We want to allow all to play free chess')
+        MembershipType.objects.create(user=self.officer,type=consts.OFFICER, club=self.club)
         self.client.login(email=self.officer.email, password='Pass123')
+
 
         self.applicant = User.objects.create_user(
             email="applicant@example.org",
@@ -28,7 +31,7 @@ class PromoteViewTestCase(TestCase):
             chess_experience_level=1,
             personal_statement="applicantPersonal",
         )
-        MembershipType.objects.create(user=self.applicant, type=consts.APPLICANT)
+        MembershipType.objects.create(user=self.applicant, type=consts.APPLICANT, club=self.club)
 
         self.url = reverse("promote",kwargs={"user_id":self.applicant.pk})
 
@@ -38,12 +41,12 @@ class PromoteViewTestCase(TestCase):
 
 
     def test_promote_successful(self):
-        applicantType = MembershipType.objects.get(pk=self.applicant.pk).type
+        applicantType = MembershipType.objects.get(user = self.applicant).type
         self.assertEqual(applicantType, consts.APPLICANT)
 
         response = self.client.get(self.url, follow=True)
 
-        applicantType = MembershipType.objects.get(pk=self.applicant.pk).type
+        applicantType = MembershipType.objects.get(user = self.applicant).type
         self.assertEqual(applicantType, consts.MEMBER)
 
         response_url = reverse("user_list")
@@ -80,16 +83,16 @@ class PromoteViewTestCase(TestCase):
 
 
     def test_promote_member(self):
-        applicantMembership = MembershipType.objects.get(pk=self.applicant.pk)
+        applicantMembership = MembershipType.objects.get(user = self.applicant)
         applicantMembership.type = "member"
         applicantMembership.save()
 
-        applicantType = MembershipType.objects.get(pk=self.applicant.pk).type
+        applicantType = MembershipType.objects.get(user = self.applicant).type
         self.assertEqual(applicantType, consts.MEMBER)
 
         response = self.client.get(self.url, follow=True)
 
-        applicantType = MembershipType.objects.get(pk=self.applicant.pk).type
+        applicantType = MembershipType.objects.get(user = self.applicant).type
         self.assertEqual(applicantType, consts.OFFICER)
 
         response_url = reverse("user_list")

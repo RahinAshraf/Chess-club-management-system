@@ -35,13 +35,10 @@ class SignUpViewTestCase(TestCase, LogInTester):
 
     def test_unsuccesful_sign_up(self):
         self.form_input['email'] = 'badMail'
-        before_membership_type_count = MembershipType.objects.count()
         before_count = User.objects.count()
         response = self.client.post(self.url, self.form_input)
         after_count = User.objects.count()
-        after_membership_type_count = MembershipType.objects.count()
         self.assertEqual(after_count, before_count)
-        self.assertEqual(after_membership_type_count, before_membership_type_count)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'sign_up.html')
         form = response.context['form']
@@ -51,12 +48,9 @@ class SignUpViewTestCase(TestCase, LogInTester):
 
     def test_succesful_sign_up(self):
         before_count = User.objects.count()
-        before_membership_type_count = MembershipType.objects.count()
         response = self.client.post(self.url, self.form_input, follow=True)
-        after_membership_type_count = MembershipType.objects.count()
         after_count = User.objects.count()
         self.assertEqual(after_count, before_count+1)
-        self.assertEqual(after_membership_type_count, before_membership_type_count + 1)
         response_url = reverse('test')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
         user = User.objects.get(email='janedoe@example.org')

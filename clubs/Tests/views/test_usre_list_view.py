@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
-from clubs.models import User,MembershipType
+from clubs.models import User,MembershipType,Club
 from clubs.Tests.helpers import reverse_with_next
 
 class UserListTest(TestCase):
@@ -10,6 +10,8 @@ class UserListTest(TestCase):
     def setUp(self):
         self.url = reverse('user_list')
         self.user = User.objects.get(first_name='John')
+        self.club = Club.objects.create(name = "Club1", location = 'location1', 
+                                        mission_statement = 'We want to allow all to play free chess')
 
     def test_user_list_url(self):
         self.assertEqual(self.url,'/users/')
@@ -36,7 +38,7 @@ class UserListTest(TestCase):
             chess_experience_level=1,
             personal_statement="memberPersonal",
         )
-        MembershipType.objects.create(user=user2,type="member")
+        MembershipType.objects.create(user=user2,type="member", club=self.club)
 
         self.client.login(email=user2.email, password='Pass123')
         response = self.client.get(self.url)
@@ -54,7 +56,7 @@ class UserListTest(TestCase):
             chess_experience_level=1,
             personal_statement="officerPersonal",
         )
-        MembershipType.objects.create(user=user2,type="officer")
+        MembershipType.objects.create(user=user2,type="officer", club=self.club)
 
         self.client.login(email=user2.email, password='Pass123')
         response = self.client.get(self.url)

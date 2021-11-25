@@ -47,7 +47,6 @@ class SignUpForm(forms.ModelForm):
             public_bio=self.cleaned_data.get('public_bio'),
             personal_statement=self.cleaned_data.get('personal_statement'),
         )
-        self.make_applicant(user=user)
         return user
 
     def make_applicant(self,user):
