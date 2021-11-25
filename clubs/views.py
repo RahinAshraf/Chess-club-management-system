@@ -153,7 +153,6 @@ def transfer_ownership(request, user_id):
                 messages.add_message(request, messages.ERROR, "You are only allowed to transfer the ownership to an officer")
                 return redirect("user_list")
                 
-
             return redirect("user_list")
         else:
             messages.add_message(request, messages.ERROR, "You are not are not allowed to transfer ownership")
@@ -185,5 +184,21 @@ def user_list(request):
     users = User.objects.all()
     current_user = request.user
     type = current_user.get_type()
-
     return render(request, 'user_list.html', {'users': users, "type": type})
+
+
+@login_required
+def club_list(request):
+    clubs = User.objects.all()
+    current_user = request.user
+    type = current_user.get_type()
+    return render(request, 'club_list.html', {'clubs': clubs, "type": type})
+
+
+@login_required
+def apply_to_club(request, user_id):
+    current_user = request.user
+    type = current_user.get_type()
+    return render(request,'user_list.html', {"type": type})
+
+
