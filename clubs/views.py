@@ -14,7 +14,10 @@ from .Constants import consts
 # Create your views here.
 
 def home(request):
-    return render(request, 'home.html')
+    if request.user.is_authenticated:
+        return redirect('test')
+    else :
+        return render(request, 'home.html')
 
 def test(request):
     return render(request, 'test.html')
