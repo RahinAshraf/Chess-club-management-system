@@ -211,6 +211,7 @@ def create_new_club(request):
             club.club_owner = request.user
             club.save()
             form.save()
+            messages.add_message(request, messages.SUCCESS, "You have created a new club!")
             return redirect('club_list')
     else:
         form = CreateNewClubForm()
