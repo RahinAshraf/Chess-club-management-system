@@ -5,16 +5,22 @@
     <div class="col-12">
       <h1>Users</h1>
       <table class="table">
-      <tr>
-       <td><b>Gravatar</b></td>
-       <td><b>Email</b></td>
-       <td><b>Username</b></td>
-       <td><b>Bio</b></td>
-       <td><b>Personal Statement</b></td>
-       <td><b>Experience level</b></td>
-       <td><b>Date joined</b></td>
-       <td><b>Membership type</b></td>
-      </tr>
+        <tr>
+          {% if type == 'member' or type == 'applicant' or type == None %}
+            <td><b>Gravatar</b></td>
+            <td><b>Full Name</b></td>
+            <td><b>Bio</b></td>
+          {% else %}
+            <td><b>Gravatar</b></td>
+            <td><b>Email</b></td>
+            <td><b>Full Name</b></td>
+            <td><b>Bio</b></td>
+            <td><b>Personal Statement</b></td>
+            <td><b>Experience level</b></td>
+            <td><b>Date joined</b></td>
+            <td><b>Membership type</b></td>
+          {% endif %}
+        </tr>
         {% for user in users %}
           <tr>
             {% if type == 'member' or type == 'applicant' or type == None %}
@@ -50,11 +56,9 @@
               <td>{{ user.get_type }}</td>
               {% if user.get_type == 'applicant' %}
                 <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' user.id %}" role="button">promote to member</a></td>
-              {% endif %}
-              {% if user.get_type == 'member' %}
+              {% elif user.get_type == 'member' %}
                 <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' user.id %}" role="button">promote to officer</a></td>
-              {% endif %}
-              {% if user.get_type == 'officer' %}
+              {% elif user.get_type == 'officer' %}
                 <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'demote' user.id %}" role="button">demote to member</a></td>
                 <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'transfer_ownership' user.id %}" role="button">Transfer club ownership</a></td>
               {% endif %}

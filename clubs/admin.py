@@ -16,7 +16,7 @@ class UserAdmin(admin.ModelAdmin):
     """Configuration of the admin interface for MembershipType."""
 
     list_display = [
-        "user","type"
+        "user","type","club"
     ]
 
 admin.site.register(Club)

@@ -152,7 +152,7 @@ def transfer_ownership(request, user_id):
             else:
                 messages.add_message(request, messages.ERROR, "You are only allowed to transfer the ownership to an officer")
                 return redirect("user_list")
-                
+
             return redirect("user_list")
         else:
             messages.add_message(request, messages.ERROR, "You are not are not allowed to transfer ownership")
@@ -216,7 +216,3 @@ def create_new_club(request):
     else:
         form = CreateNewClubForm()
     return render(request, 'create_club.html', {'form': form})
-    
-
-
-
