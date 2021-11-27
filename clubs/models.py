@@ -144,6 +144,27 @@ class User(AbstractBaseUser, PermissionsMixin):
         except MembershipType.DoesNotExist:
             return None
 
+    def get_clubs(self):
+        """Returns a list of clubs that the user is in"""
+
+        memberships = MembershipType.objects.filter(user=self)
+        clubs = []
+        for membership in memberships:
+            clubs.append(membership.club)
+
+        return clubs
+
+    def get_member_clubs(self):
+        """Returns a list of clubs that the user is a member of (that means that type of the user != applicant) """
+
+        memberships = MembershipType.objects.filter(user=self).exclude(type=consts.APPLICANT)
+
+        clubs = []
+        for membership in memberships:
+            clubs.append(membership.club)
+
+        return clubs
+
     chess_experience_level = models.IntegerField(blank=False, validators = [MinValueValidator(1)])
     public_bio = models.CharField(blank=True, max_length=520) # using CharField for making validation of max_length possible
     personal_statement = models.TextField(blank=False)
@@ -158,11 +179,22 @@ def validate_membership_type(value):
             params={'value': value},
         )
 
+
 class Club(models.Model):
     club_owner = models.ForeignKey(User, on_delete = models.CASCADE,)
     name = models.CharField(unique=True, blank=False, max_length=90, primary_key=True)
     location = models.CharField(blank=False, max_length=100)
     mission_statement = models.CharField(blank=False, max_length=800)
+
+    def get_all_users():
+        """Returns a list of the users in this club"""
+        memberships = MembershipType.objects.filter(club=self)
+
+        users = []
+        for membership in memberships:
+            users.append(membership.user)
+
+        return users
 
 
 class MembershipType(models.Model):

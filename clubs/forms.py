@@ -89,11 +89,7 @@ class PasswordForm(forms.Form):
 
 class CreateNewClubForm(forms.ModelForm):
 
-    class Meta: 
+    class Meta:
         #Form options
         model = Club
-        fields = ['name','location','mission_statement'] 
-      
-
-        
-
+        fields = ['name','location','mission_statement']

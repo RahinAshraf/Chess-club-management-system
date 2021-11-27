@@ -8,6 +8,14 @@
         </li>
       </ul>
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          <form method="get" action="{% url 'switch_club' %}">
+            <select name='club_choice' onchange='this.form.submit();' class="form-select" aria-label="Default select example">
+              <option disabled selected value>Choose a club</option>
+              {% for club in user.get_member_clubs %}
+              <option value="{{ club.name }}">{{ club.name }}</option>
+              {% endfor %}
+            </select>
+          </form>
           <li class="nav-item dropdown">
             <a
               class="nav-link"
