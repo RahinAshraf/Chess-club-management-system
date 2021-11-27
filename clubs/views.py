@@ -105,15 +105,18 @@ def promote(request, user_id):
     Officers and Club Owners are able to promote specific applicants to members"""
     try:
         user = User.objects.get(pk=user_id)
-        membership = MembershipType.objects.get(user=user)
+        if request.session['club_choice']:
+            membership = MembershipType.objects.get(user=user, club = request.session['club_choice'])
+        else:
+            membership = None
 
     except ObjectDoesNotExist:
         messages.add_message(request, messages.ERROR, "Invalid user to promote")
         return redirect("user_list")
     else:
         current_user = request.user
-
-        if current_user.get_type()==consts.OFFICER or current_user.get_type()==consts.CLUB_OWNER:
+        membership_type_of_current_user = current_user.get_membership_type_in_club(request.session['club_choice'])
+        if membership_type_of_current_user==consts.OFFICER or membership_type_of_current_user==consts.CLUB_OWNER:
             if (membership.type=="applicant"):
                 membership.type = "member"
                 membership.save()
@@ -134,15 +137,18 @@ def promote(request, user_id):
 def demote(request, user_id):
     try:
         user = User.objects.get(pk=user_id)
-        membership = MembershipType.objects.get(user=user)
+        if request.session['club_choice']:
+            membership = MembershipType.objects.get(user=user, club = request.session['club_choice'])
+        else:
+            membership = None
 
     except ObjectDoesNotExist:
         messages.add_message(request, messages.ERROR, "Invalid user")
         return redirect("user_list")
     else:
         current_user = request.user
-
-        if current_user.get_type()==consts.CLUB_OWNER:
+        membership_type_of_current_user = current_user.get_membership_type_in_club(request.session['club_choice'])
+        if membership_type_of_current_user==consts.CLUB_OWNER:
             if (membership.type=="officer"):
                 membership.type = "member"
                 membership.save()

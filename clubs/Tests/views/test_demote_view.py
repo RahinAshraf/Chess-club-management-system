@@ -40,7 +40,7 @@ class demoteViewTestCase(TestCase):
     def test_demote_successful(self):
         officerType = MembershipType.objects.get(user = self.officer, club = self.club).type
         self.assertEqual(officerType, consts.OFFICER)
-
+        response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         response = self.client.get(self.url, follow=True)
 
         officerType = MembershipType.objects.get(user = self.officer, club = self.club).type
@@ -56,6 +56,7 @@ class demoteViewTestCase(TestCase):
     def test_demote_nonexisting_user(self):
         userLength = len(User.objects.all())
         self.url = reverse("demote",kwargs={"user_id": userLength+1})
+        response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         response = self.client.get(self.url, follow=True)
 
         response_url = reverse("user_list")
@@ -67,6 +68,7 @@ class demoteViewTestCase(TestCase):
 
     def test_cannot_demote(self):
         self.client.login(email=self.officer.email, password='Pass123')
+        response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         response = self.client.get(self.url, follow=True)
 
         response_url = reverse("user_list")

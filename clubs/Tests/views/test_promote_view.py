@@ -43,7 +43,7 @@ class PromoteViewTestCase(TestCase):
     def test_promote_successful(self):
         applicantType = MembershipType.objects.get(user = self.applicant, club = self.club).type
         self.assertEqual(applicantType, consts.APPLICANT)
-
+        response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         response = self.client.get(self.url, follow=True)
 
         applicantType = MembershipType.objects.get(user = self.applicant, club = self.club).type
@@ -60,6 +60,7 @@ class PromoteViewTestCase(TestCase):
     def test_promote_nonexisting_user(self):
         userLength = len(User.objects.all())
         self.url = reverse("promote",kwargs={"user_id": userLength+1})
+        response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         response = self.client.get(self.url, follow=True)
 
         response_url = reverse("user_list")
@@ -72,6 +73,7 @@ class PromoteViewTestCase(TestCase):
 
     def test_cannot_promote(self):
         self.client.login(email=self.applicant.email, password='Pass123')
+        response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         response = self.client.get(self.url, follow=True)
 
         response_url = reverse("user_list")
@@ -90,6 +92,7 @@ class PromoteViewTestCase(TestCase):
         applicantType = MembershipType.objects.get(user = self.applicant, club = self.club).type
         self.assertEqual(applicantType, consts.MEMBER)
 
+        response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         response = self.client.get(self.url, follow=True)
 
         applicantType = MembershipType.objects.get(user = self.applicant, club = self.club).type
