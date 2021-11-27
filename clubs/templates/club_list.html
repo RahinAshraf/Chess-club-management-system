@@ -35,7 +35,7 @@
             <td>{{club.club_owner}}</td>
             <td>{{club.club_owner.public_bio}}</td>
             {% if club not in existing_clubs%}
-              <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'apply_to_club' user.id %}" role="button">Apply to club</a></td> </tr>
+              <td> <a class="btn btn-primary btn-sm text-nowrap" href="{% url 'apply_to_club' club.name %}" role="button">Apply to club</a> </td> </tr>
             {% endif %}
         {% endfor %}
 

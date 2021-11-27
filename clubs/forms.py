@@ -93,3 +93,5 @@ class CreateNewClubForm(forms.ModelForm):
         #Form options
         model = Club
         fields = ['name','location','mission_statement']
+
+

@@ -230,22 +230,20 @@ def user_list(request):
 def club_list(request):
     clubs = Club.objects.all()
     current_user = request.user
-    try:
-        current_user_club_name = request.session['club_choice']
-        current_user_club = Club.objects.get(pk = request.session['club_choice'])
-    except:
-        return redirect('test')
-    else:
-        type = current_user.get_membership_type_in_club(current_user_club_name)
-        existing_clubs_of_user = current_user.get_clubs()
-        return render(request, 'club_list.html', {'clubs': clubs, "type": type, 'existing_clubs':existing_clubs_of_user})
+    existing_clubs_of_user = current_user.get_clubs()
+    return render(request, 'club_list.html', {'clubs': clubs, 'existing_clubs':existing_clubs_of_user})
 
 
 @login_required
-def apply_to_club(request, user_id):
-    current_user = request.user
-    type = current_user.get_type()
-    return render(request,'user_list.html', {"type": type})
+def apply_to_club(request, club_name):
+    user_club_choice = Club.objects.get(pk = club_name)
+    print(user_club_choice)
+    print(request.user)
+    # Make user an applicant of this club
+    MembershipType.objects.create(user = request.user, club = user_club_choice, type = consts.APPLICANT)
+    succes_string = 'You have successfully applied to' + club_name
+    messages.add_message(request, messages.SUCCESS, succes_string)
+    return club_list(request = request)
 
 
 @login_required
@@ -253,10 +251,12 @@ def create_new_club(request):
     if request.method == 'POST':
         form = CreateNewClubForm(request.POST)
         if form.is_valid():
-            club = form.save(commit = False)
+            club = form.save(commit=False)
             club.club_owner = request.user
             club.save()
             form.save()
+            # Create the new membership type
+            MembershipType.objects.create(user = request.user, club = club, type = consts.CLUB_OWNER)
             messages.add_message(request, messages.SUCCESS, "You have created a new club!")
             return redirect('club_list')
     else:
