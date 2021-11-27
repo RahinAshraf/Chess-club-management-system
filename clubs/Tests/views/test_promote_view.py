@@ -41,12 +41,12 @@ class PromoteViewTestCase(TestCase):
 
 
     def test_promote_successful(self):
-        applicantType = MembershipType.objects.get(user = self.applicant).type
+        applicantType = MembershipType.objects.get(user = self.applicant, club = self.club).type
         self.assertEqual(applicantType, consts.APPLICANT)
 
         response = self.client.get(self.url, follow=True)
 
-        applicantType = MembershipType.objects.get(user = self.applicant).type
+        applicantType = MembershipType.objects.get(user = self.applicant, club = self.club).type
         self.assertEqual(applicantType, consts.MEMBER)
 
         response_url = reverse("user_list")
@@ -83,16 +83,16 @@ class PromoteViewTestCase(TestCase):
 
 
     def test_promote_member(self):
-        applicantMembership = MembershipType.objects.get(user = self.applicant)
+        applicantMembership = MembershipType.objects.get(user = self.applicant, club = self.club)
         applicantMembership.type = "member"
         applicantMembership.save()
 
-        applicantType = MembershipType.objects.get(user = self.applicant).type
+        applicantType = MembershipType.objects.get(user = self.applicant, club = self.club).type
         self.assertEqual(applicantType, consts.MEMBER)
 
         response = self.client.get(self.url, follow=True)
 
-        applicantType = MembershipType.objects.get(user = self.applicant).type
+        applicantType = MembershipType.objects.get(user = self.applicant, club = self.club).type
         self.assertEqual(applicantType, consts.OFFICER)
 
         response_url = reverse("user_list")

@@ -38,12 +38,12 @@ class demoteViewTestCase(TestCase):
         self.assertEqual(self.url, "/demote/" + str(self.officer.pk) + "/")
 
     def test_demote_successful(self):
-        officerType = MembershipType.objects.get(user = self.officer).type
+        officerType = MembershipType.objects.get(user = self.officer, club = self.club).type
         self.assertEqual(officerType, consts.OFFICER)
 
         response = self.client.get(self.url, follow=True)
 
-        officerType = MembershipType.objects.get(user = self.officer).type
+        officerType = MembershipType.objects.get(user = self.officer, club = self.club).type
         self.assertEqual(officerType, consts.MEMBER)
 
         response_url = reverse("user_list")
