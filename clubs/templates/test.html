@@ -17,6 +17,10 @@
     <p class="card-text" style = "font-family: Gotham; font-size:25px">
         Email : {{ user.email }} <br>
         Chess Experience Level : {{ user.chess_experience_level }} <br>
+        {% if club and membership_type %}
+        Club : {{club}} <br>
+        Membership Status : {{membership_type}}
+        {% endif %}
     </p>
   </div>
 </div>

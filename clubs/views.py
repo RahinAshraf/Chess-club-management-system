@@ -20,7 +20,15 @@ def home(request):
         return render(request, 'home.html')
 
 def test(request):
-    return render(request, 'test.html')
+    club = None
+    membership_type = None
+    try:
+        club = request.session['club_choice']
+        membership_type = request.user.get_membership_type_in_club(request.session['club_choice'])
+    except:
+        render(request, 'test.html', {'club':None, 'membership_type':None})
+
+    return render(request, 'test.html', {'club':club, 'membership_type':membership_type})
 
 def sign_up(request):
     if request.method == 'POST':

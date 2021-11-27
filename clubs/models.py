@@ -144,6 +144,16 @@ class User(AbstractBaseUser, PermissionsMixin):
         except MembershipType.DoesNotExist:
             return None
 
+    def get_membership_type_in_club(self, club):
+        club = Club.objects.get(pk = club)
+        
+        try:
+            memberType = MembershipType.objects.filter(user=self,club = club)
+            return memberType[0].type
+        except MembershipType.DoesNotExist:
+            return None
+            
+
     def get_clubs(self):
         """Returns a list of clubs that the user is in"""
 
@@ -186,8 +196,9 @@ class Club(models.Model):
     location = models.CharField(blank=False, max_length=100)
     mission_statement = models.CharField(blank=False, max_length=800)
 
-    def get_all_users():
+    def get_all_users(self):
         """Returns a list of the users in this club"""
+
         memberships = MembershipType.objects.filter(club=self)
 
         users = []

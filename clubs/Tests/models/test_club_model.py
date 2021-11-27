@@ -1,6 +1,6 @@
 from django.db.utils import IntegrityError
 from django.test import TestCase
-from clubs.models import Club, User
+from clubs.models import Club, MembershipType, User
 from django.core.exceptions import ValidationError
 
 
@@ -18,6 +18,8 @@ class MembershipModelTestCase(TestCase):
                     personal_statement = 'I want to play chess!!')
         self.club = Club.objects.create(club_owner = self.user,name = "Club1", location = 'location1', 
                                         mission_statement = 'We want to allow all to play free chess')
+        
+        self.membershipType = MembershipType.objects.create(user = self.user, club = self.club, type = 'club_owner')
     
     def _assert_club_is_invalid(self):
         with self.assertRaises(ValidationError):
@@ -35,5 +37,9 @@ class MembershipModelTestCase(TestCase):
     def test_mission_statement_should_not_be_blank(self):
         self.club.mission_statement = ''
         self._assert_club_is_invalid()    
+
+    def test_get_all_users(self):
+        user = self.club.get_all_users()
+        self.assertEqual(user[0], self.user) # Using [0] because the test has only one user for now
 
         
