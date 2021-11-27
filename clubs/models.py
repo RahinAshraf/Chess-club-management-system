@@ -207,6 +207,17 @@ class Club(models.Model):
 
         return users
 
+    def get_all_users_with_types(self):
+        """Returns a list of the users with their types in this club"""
+
+        memberships = MembershipType.objects.filter(club=self)
+
+        users_membership_type = {}
+        for membership in memberships:
+            users_membership_type[membership.user] = membership.type
+
+        return users_membership_type
+
 
 class MembershipType(models.Model):
     user = models.ForeignKey(User, on_delete = models.CASCADE,)

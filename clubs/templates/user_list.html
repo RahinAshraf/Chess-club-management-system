@@ -6,7 +6,7 @@
       <h1>Users</h1>
       <table class="table">
         <tr>
-          {% if type == 'member' or type == 'applicant' or type == None %}
+          {% if type == 'member' %}
             <td><b>Gravatar</b></td>
             <td><b>Full Name</b></td>
             <td><b>Bio</b></td>
@@ -21,9 +21,9 @@
             <td><b>Membership type</b></td>
           {% endif %}
         </tr>
-        {% for user in users %}
+        {% for user, user_type in users.items %}
           <tr>
-            {% if type == 'member' or type == 'applicant' or type == None %}
+            {% if type == 'member' %}
               <td>
                 <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.username }}" class="rounded-circle" >
               </td>
@@ -39,8 +39,8 @@
               <td>{{ user.personal_statement }}</td>
               <td>{{ user.chess_experience_level }}</td>
               <td>{{ user.date_joined }}</td>
-              <td>{{ user.get_type }}</td>
-              {% if user.get_type == 'applicant' %}
+              <td>{{ user_type }}</td>
+              {% if user_type == 'applicant' %}
                 <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' user.id %}" role="button">promote to member</a></td>
               {% endif %}
             {% else %}
@@ -53,12 +53,12 @@
               <td>{{ user.personal_statement }}</td>
               <td>{{ user.chess_experience_level }}</td>
               <td>{{ user.date_joined }}</td>
-              <td>{{ user.get_type }}</td>
-              {% if user.get_type == 'applicant' %}
+              <td>{{ user_type }}</td>
+              {% if user_type == 'applicant' %}
                 <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' user.id %}" role="button">promote to member</a></td>
-              {% elif user.get_type == 'member' %}
+              {% elif user_type == 'member' %}
                 <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' user.id %}" role="button">promote to officer</a></td>
-              {% elif user.get_type == 'officer' %}
+              {% elif user_type == 'officer' %}
                 <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'demote' user.id %}" role="button">demote to member</a></td>
                 <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'transfer_ownership' user.id %}" role="button">Transfer club ownership</a></td>
               {% endif %}

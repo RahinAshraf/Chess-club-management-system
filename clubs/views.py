@@ -221,7 +221,7 @@ def user_list(request):
     except:
         return redirect('test')
     else:
-        users = current_user_club.get_all_users()
+        users = current_user_club.get_all_users_with_types()
         type = current_user.get_membership_type_in_club(current_user_club_name)
         return render(request, 'user_list.html', {'users': users, "type": type})
 
