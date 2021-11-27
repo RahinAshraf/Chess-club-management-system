@@ -219,7 +219,6 @@ def user_list(request):
         current_user_club_name = request.session['club_choice']
         current_user_club = Club.objects.get(pk = request.session['club_choice'])
     except:
-        print('hello')
         return redirect('test')
     else:
         users = current_user_club.get_all_users()
@@ -231,8 +230,15 @@ def user_list(request):
 def club_list(request):
     clubs = Club.objects.all()
     current_user = request.user
-    type = current_user.get_type()
-    return render(request, 'club_list.html', {'clubs': clubs, "type": type})
+    try:
+        current_user_club_name = request.session['club_choice']
+        current_user_club = Club.objects.get(pk = request.session['club_choice'])
+    except:
+        return redirect('test')
+    else:
+        type = current_user.get_membership_type_in_club(current_user_club_name)
+        existing_clubs_of_user = current_user.get_clubs()
+        return render(request, 'club_list.html', {'clubs': clubs, "type": type, 'existing_clubs':existing_clubs_of_user})
 
 
 @login_required
