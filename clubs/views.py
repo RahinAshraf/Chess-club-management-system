@@ -214,10 +214,17 @@ def password(request):
 
 @login_required
 def user_list(request):
-    users = User.objects.all()
     current_user = request.user
-    type = current_user.get_type()
-    return render(request, 'user_list.html', {'users': users, "type": type})
+    try:
+        current_user_club_name = request.session['club_choice']
+        current_user_club = Club.objects.get(pk = request.session['club_choice'])
+    except:
+        print('hello')
+        return redirect('test')
+    else:
+        users = current_user_club.get_all_users()
+        type = current_user.get_membership_type_in_club(current_user_club_name)
+        return render(request, 'user_list.html', {'users': users, "type": type})
 
 
 @login_required
