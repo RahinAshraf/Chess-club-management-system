@@ -4,7 +4,7 @@ from django.urls import reverse
 from ...Constants import consts
 from ...models import User,MembershipType,Club
 
-class demoteViewTestCase(TestCase):
+class transferOwnershipViewTestCase(TestCase):
 
     def setUp(self):
         self.officer = User.objects.create_user(
@@ -42,6 +42,7 @@ class demoteViewTestCase(TestCase):
         officerType = MembershipType.objects.filter(user = self.officer)[0].type
         self.assertEqual(officerType, consts.OFFICER)
 
+        response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         response = self.client.get(self.url, follow=True)
 
         officerType = MembershipType.objects.filter(user = self.officer)[0].type
@@ -57,6 +58,8 @@ class demoteViewTestCase(TestCase):
     def test_transfer_nonexisting_user(self):
         userLength = len(User.objects.all())
         self.url = reverse("transfer_ownership",kwargs={"user_id": userLength+1})
+
+        response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         response = self.client.get(self.url, follow=True)
 
         response_url = reverse("user_list")
@@ -74,6 +77,7 @@ class demoteViewTestCase(TestCase):
         officerType = MembershipType.objects.get(user = self.officer).type
         self.assertEqual(officerType, consts.MEMBER)
 
+        response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         response = self.client.get(self.url, follow=True)
 
         officerType = MembershipType.objects.get(user = self.officer).type

@@ -163,17 +163,19 @@ def demote(request, user_id):
 def transfer_ownership(request, user_id):
     try:
         user = User.objects.get(pk=user_id)
-        membership = MembershipType.objects.get(user=user)
+        club = request.session['club_choice']
+        membership = MembershipType.objects.get(user=user, club = club)
 
     except ObjectDoesNotExist:
         messages.add_message(request, messages.ERROR, "Invalid user")
         return redirect("user_list")
     else:
         current_user = request.user
-        # current_owner = User.objects.get(pk=request.user_id)
-        owner_membership = MembershipType.objects.get(user=current_user)
 
-        if current_user.get_type()==consts.CLUB_OWNER:
+        # current_owner = User.objects.get(pk=request.user_id)
+        owner_membership = MembershipType.objects.get(user=current_user, club = club)
+        owner_membership_type = current_user.get_membership_type_in_club(club = club)
+        if owner_membership_type==consts.CLUB_OWNER:
             if (membership.type=="officer"):
                 owner_membership.type = "officer"
                 owner_membership.save()
