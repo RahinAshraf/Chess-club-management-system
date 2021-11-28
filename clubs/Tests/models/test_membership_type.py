@@ -20,7 +20,7 @@ class MembershipModelTestCase(TestCase):
                                         mission_statement = 'We want to allow all to play free chess')
         
 
-        self.membership_type = MembershipType.objects.create(user = self.user, club = self.club ,type = consts.CLUB_OWNER)
+        self.membership_type = MembershipType.objects.get(user = self.user, club = self.club ,type = consts.CLUB_OWNER)
         
     def _assert_memberhip_type_is_invalid(self):
         with self.assertRaises(ValidationError):
@@ -87,22 +87,15 @@ class MembershipModelTestCase(TestCase):
             new_user_membership_type.full_clean()
 
     def test_user_can_be_a_member_of_many_clubs(self):
-        club3 = Club.objects.create(club_owner = self.user,name = "Club3", location = 'location1', 
-                                        mission_statement = 'We want to allow all to play free chess')
-
-        club4 = Club.objects.create(club_owner = self.user,name = "Club4", location = 'location1', 
-                                    mission_statement = 'We want to allow all to play free chess')
-
-        new_user_membership_type = self.membership_type = MembershipType.objects.create(user = self.user, club = club3, type = consts.APPLICANT)
         try:
-            new_user_membership_type.full_clean()
+            club3 = Club.objects.create(club_owner = self.user,name = "Club3", location = 'location1', 
+                                        mission_statement = 'We want to allow all to play free chess')
         except :
             self.fail('Test membership type should be valid')
         
-        new_user_membership_type2 = self.membership_type = MembershipType.objects.create(user = self.user, club = club4, type = consts.MEMBER)
-
         try:
-            new_user_membership_type2.full_clean()
+            club4 = Club.objects.create(club_owner = self.user,name = "Club4", location = 'location1', 
+                                    mission_statement = 'We want to allow all to play free chess')
         except :
             self.fail('Test membership type should be valid')
  

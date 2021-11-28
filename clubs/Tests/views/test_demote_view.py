@@ -7,19 +7,6 @@ from ...models import User,MembershipType, Club
 class demoteViewTestCase(TestCase):
 
     def setUp(self):
-        self.officer = User.objects.create_user(
-            email="officer@example.org",
-            password="Pass123",
-            first_name="officerFirst",
-            last_name="officerLast",
-            public_bio="officer",
-            chess_experience_level=1,
-            personal_statement="officerPersonal",
-        )
-        self.club = Club.objects.create(club_owner = self.officer,name = "Club1", location = 'location1', 
-            mission_statement = 'We want to allow all to play free chess')
-        MembershipType.objects.create(user=self.officer,type=consts.OFFICER, club=self.club)
-
         self.club_owner = User.objects.create_user(
             email="clubOwner@example.org",
             password="Pass123",
@@ -29,7 +16,20 @@ class demoteViewTestCase(TestCase):
             chess_experience_level=1,
             personal_statement="clubOwnerPersonal",
         )
-        MembershipType.objects.create(user=self.club_owner, type=consts.CLUB_OWNER, club=self.club)
+
+        self.officer = User.objects.create_user(
+            email="officer@example.org",
+            password="Pass123",
+            first_name="officerFirst",
+            last_name="officerLast",
+            public_bio="officer",
+            chess_experience_level=1,
+            personal_statement="officerPersonal",
+        )
+        self.club = Club.objects.create(club_owner = self.club_owner,name = "Club1", location = 'location1', 
+            mission_statement = 'We want to allow all to play free chess')
+        MembershipType.objects.create(user=self.officer,type=consts.OFFICER, club=self.club)
+
         self.client.login(email=self.club_owner.email, password='Pass123')
 
         self.url = reverse("demote",kwargs={"user_id":self.officer.pk})

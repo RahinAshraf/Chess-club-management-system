@@ -19,7 +19,7 @@ class MembershipModelTestCase(TestCase):
         self.club = Club.objects.create(club_owner = self.user,name = "Club1", location = 'location1', 
                                         mission_statement = 'We want to allow all to play free chess')
         
-        self.membershipType = MembershipType.objects.create(user = self.user, club = self.club, type = 'club_owner')
+        self.membershipType = MembershipType.objects.get(user = self.user, club = self.club, type = 'club_owner')
     
     def _assert_club_is_invalid(self):
         with self.assertRaises(ValidationError):
@@ -27,7 +27,7 @@ class MembershipModelTestCase(TestCase):
 
     def test_name_should_be_unique(self):        
         with self.assertRaises(IntegrityError):
-            Club.objects.create(name = "Club1", location = 'location1', 
+            Club.objects.create(club_owner = self.user, name = "Club1", location = 'location1', 
                         mission_statement = 'We want to allow all to play free chess')
 
     def test_location_should_not_be_blank(self):
@@ -41,5 +41,8 @@ class MembershipModelTestCase(TestCase):
     def test_get_all_users(self):
         user = self.club.get_all_users()
         self.assertEqual(user[0], self.user) # Using [0] because the test has only one user for now
+
+    def test_club_has_right_owner(self):
+        self.assertEqual(self.user, self.membershipType.user)
 
         

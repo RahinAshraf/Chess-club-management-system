@@ -13,7 +13,6 @@ class UserListTest(TestCase):
         self.user = User.objects.get(first_name='John')
         self.club = Club.objects.create(club_owner=self.user,name = "Club1", location = 'location1', 
                                         mission_statement = 'We want to allow all to play free chess')
-        self.membership_type = MembershipType.objects.create(user = self.user, club = self.club, type = consts.CLUB_OWNER)
 
     def test_user_list_url(self):
         self.assertEqual(self.url,'/users/')

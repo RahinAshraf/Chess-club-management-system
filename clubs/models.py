@@ -75,6 +75,15 @@ class MembershipTypeManager(models.Manager):
             else:
                 return super().create(**obj_data)
 
+class ClubModelManager(models.Manager):
+    def create(self, **obj_data):
+        user = obj_data['club_owner']
+        club = super().create(**obj_data)
+
+        # Creating the membership type object
+        MembershipType.objects.create(user = user, club = club, type = consts.CLUB_OWNER)
+        return club
+
 class User(AbstractBaseUser, PermissionsMixin):
 
     email = models.EmailField(
@@ -217,6 +226,10 @@ class Club(models.Model):
             users_membership_type[membership.user] = membership.type
 
         return users_membership_type
+    
+
+    objects = ClubModelManager()
+    
 
 
 class MembershipType(models.Model):

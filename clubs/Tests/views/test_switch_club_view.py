@@ -19,7 +19,6 @@ class SwitchClubViewTestCase(TestCase):
         )
         self.club = Club.objects.create(club_owner=self.owner, name = "Club1", location = 'location1',
             mission_statement = 'We want to allow all to play free chess')
-        MembershipType.objects.create(user=self.owner,type=consts.CLUB_OWNER, club=self.club)
 
         self.client.login(email=self.owner.email, password='Pass123')
         self.client.get('test/', follow = True)

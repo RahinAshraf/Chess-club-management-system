@@ -172,7 +172,6 @@ def transfer_ownership(request, user_id):
     else:
         current_user = request.user
 
-        # current_owner = User.objects.get(pk=request.user_id)
         owner_membership = MembershipType.objects.get(user=current_user, club = club)
         owner_membership_type = current_user.get_membership_type_in_club(club = club)
         if owner_membership_type==consts.CLUB_OWNER:
@@ -181,6 +180,9 @@ def transfer_ownership(request, user_id):
                 owner_membership.save()
                 membership.type = "club_owner"
                 membership.save()
+                user_club = Club.objects.get(pk = club)
+                user_club.club_owner = user
+                user_club.save()
                 messages.add_message(request, messages.SUCCESS, "Ownership successfully transferred")
             else:
                 messages.add_message(request, messages.ERROR, "You are only allowed to transfer the ownership to an officer")
@@ -255,7 +257,9 @@ def create_new_club(request):
             club.club_owner = request.user
             club.save()
             form.save()
-            # Create the new membership type
+            # Create the new membership type. 
+            # The membership is being manually created because the club models' save method is called instead of create 
+            # which does not automatically create the new membership.
             MembershipType.objects.create(user = request.user, club = club, type = consts.CLUB_OWNER)
             messages.add_message(request, messages.SUCCESS, "You have created a new club!")
             return redirect('club_list')
