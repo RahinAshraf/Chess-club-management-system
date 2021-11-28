@@ -46,4 +46,13 @@ class CreateNewClubFormTestCase(TestCase):
         form = CreateNewClubForm(data=self.form_input)
         self.assertFalse(form.is_valid())
 
+    def test_form_correctly_assignes_club_owner(self):
+        form = CreateNewClubForm(data=self.form_input)
+        club = form.save(commit=False)
+        club.club_owner = self.user
+        club.save()
+        form.save()
+        club_owner = Club.objects.get(pk = self.form_input['name']).club_owner
+        self.assertEqual(club_owner,self.user)
+
     
