@@ -124,7 +124,7 @@ def promote(request, user_id):
             elif (membership.type=="member"):
                 membership.type = "officer"
                 membership.save()
-                messages.add_message(request, messages.INFO, "User successfully promoted to officer")
+                messages.add_message(request, messages.SUCCESS, "User successfully promoted to officer")
             else:
                 messages.add_message(request, messages.INFO, "User is already a member")
 
@@ -257,8 +257,8 @@ def create_new_club(request):
             club.club_owner = request.user
             club.save()
             form.save()
-            # Create the new membership type. 
-            # The membership is being manually created because the club models' save method is called instead of create 
+            # Create the new membership type.
+            # The membership is being manually created because the club models' save method is called instead of create
             # which does not automatically create the new membership.
             MembershipType.objects.create(user = request.user, club = club, type = consts.CLUB_OWNER)
             messages.add_message(request, messages.SUCCESS, "You have created a new club!")
