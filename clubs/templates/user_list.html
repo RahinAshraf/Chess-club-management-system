@@ -59,8 +59,22 @@
               {% elif user_type == 'member' %}
                 <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' user.id %}" role="button">promote to officer</a></td>
               {% elif user_type == 'officer' %}
-                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'demote' user.id %}" role="button">demote to member</a></td>
-                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'transfer_ownership' user.id %}" role="button">Transfer club ownership</a></td>
+              <td>
+
+                <div class="dropdown">
+                  <a class="nav-link" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button href="#" class="btn btn-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      Demote or Transfer
+                    </button>
+                  </a>
+                  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <li><a class="dropdown-item" href="{% url 'demote' user.id %}">Demote to member</a></li>
+                    <li><a class="dropdown-item" href="{% url 'transfer_ownership' user.id %}">Transfer club ownership</a></li>
+                  </ul>
+                </div>
+
+              </td>
+
               {% endif %}
             {% endif %}
           </tr>
