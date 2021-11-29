@@ -1,13 +1,15 @@
 <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-        <li class="nav-item">
-          <a class="nav-link" href="{% url 'user_list' %}">Users</a>
-        </li>
+        {% if request.session.club_choice%}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'user_list' %}">Users</a>
+          </li>
+        {% endif %}
         <li class="nav-item">
           <a class="nav-link" href="{% url 'club_list' %}">Clubs</a>
         </li>
       </ul>
-        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0" style = "margin-right: 5px;">
           <form method="get" action="{% url 'switch_club' %}">
             <select name='club_choice' onchange='this.form.submit();' class="form-select" aria-label="Default select example">
               <option disabled selected value>Choose a club</option>

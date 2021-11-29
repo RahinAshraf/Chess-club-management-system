@@ -29,11 +29,11 @@
           <tr>
             <td>{{club.name}}</td>
             <td>{{club.location}}</td>
-            <td>{{club.mission_statement}}</td>
+            <td><p>{{club.mission_statement}}</p></td>
             <td>{{club.get_number_of_members}}</td>
             <td><img src="{{ club.club_owner.mini_gravatar }}" alt="Gravatar of {{ club.club_owner.username }}" class="rounded-circle"></td>
             <td>{{club.club_owner}}</td>
-            <td>{{club.club_owner.public_bio}}</td>
+            <td><p>{{club.club_owner.public_bio}}</p></td>
             {% if club not in existing_clubs%}
               <td> <a class="btn btn-primary btn-sm text-nowrap" href="{% url 'apply_to_club' club.name %}" role="button">Apply to club</a> </td> </tr>
             {% endif %}

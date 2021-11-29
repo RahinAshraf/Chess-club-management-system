@@ -28,15 +28,15 @@
                 <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.username }}" class="rounded-circle" >
               </td>
               <td>{{ user.full_name }}</td>
-              <td>{{ user.public_bio }}</td>
+              <td><p>{{ user.public_bio }}</p></td>
             {% elif type == 'officer' %}
               <td>
                 <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.username }}" class="rounded-circle" >
               </td>
               <td>{{ user.email }}</td>
               <td>{{ user.full_name }}</td>
-              <td>{{ user.public_bio }}</td>
-              <td>{{ user.personal_statement }}</td>
+              <td><p>{{ user.public_bio }}</p></td>
+              <td><p>{{ user.personal_statement }}</p></td>
               <td>{{ user.chess_experience_level }}</td>
               <td>{{ user.date_joined }}</td>
               <td>{{ user_type }}</td>
@@ -49,8 +49,8 @@
               </td>
               <td>{{ user.email }}</td>
               <td>{{ user.full_name }}</td>
-              <td>{{ user.public_bio }}</td>
-              <td>{{ user.personal_statement }}</td>
+              <td><p>{{ user.public_bio }}</p></td>
+              <td><p>{{ user.personal_statement }}</p></td>
               <td>{{ user.chess_experience_level }}</td>
               <td>{{ user.date_joined }}</td>
               <td>{{ user_type }}</td>
