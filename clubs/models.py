@@ -227,7 +227,13 @@ class Club(models.Model):
 
         return users_membership_type
     
+    def get_number_of_members(self):
+        """ Returns the number of members in the club"""
 
+        memberships = MembershipType.objects.filter(club = self)
+
+        return len(memberships)
+        
     objects = ClubModelManager()
     
 

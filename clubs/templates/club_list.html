@@ -30,7 +30,7 @@
             <td>{{club.name}}</td>
             <td>{{club.location}}</td>
             <td>{{club.mission_statement}}</td>
-            <td>{{clubs.name|member_count}}</td>
+            <td>{{club.get_number_of_members}}</td>
             <td><img src="{{ club.club_owner.mini_gravatar }}" alt="Gravatar of {{ club.club_owner.username }}" class="rounded-circle"></td>
             <td>{{club.club_owner}}</td>
             <td>{{club.club_owner.public_bio}}</td>
