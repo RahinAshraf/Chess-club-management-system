@@ -3,7 +3,7 @@ from django import forms
 from django.core.validators import RegexValidator
 from django.db.models import fields
 from django.forms import widgets
-from .models import User
+from .models import Tournament, User
 from .models import MembershipType, Club
 from .Constants import consts
 class SignUpForm(forms.ModelForm):
@@ -94,4 +94,11 @@ class CreateNewClubForm(forms.ModelForm):
         model = Club
         fields = ['name','location','mission_statement']
 
+class CreateNewTournamentForm(forms.ModelForm):
 
+    class Meta:
+       model = Tournament
+       fields = ['name', 'description', 'capacity', 'deadline_to_apply'] 
+       widgets = {'description':forms.Textarea()}
+        
+    

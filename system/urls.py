@@ -34,4 +34,6 @@ urlpatterns = [
     path('demote/<int:user_id>/', views.demote, name='demote'),
     path('create_new_club/', views.create_new_club, name='create_new_club'),
     path('transfer_ownership/<int:user_id>/', views.transfer_ownership, name='transfer_ownership'),
+    path('tournaments/', views.show_tournaments, name='tournaments'),
+    path('create_new_tournament/', views.create_new_tournament, name='create_tournament')
 ]

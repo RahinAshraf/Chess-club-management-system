@@ -1,0 +1,36 @@
+{% extends 'base_content.html' %}
+{% block content %}
+
+{% comment %} <style>
+#new_tournament {
+    background-color: #008000 !important;
+    border-color: #008000 !important;
+}
+</style> {% endcomment %}
+
+
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h1>Tournaments</h1>
+      <table class="table">
+        <tr>
+          <td><b>Name</b></td>
+          <td><b>Description</b><td>
+          <td><b>Deadline To Apply</b></td>
+          {% if type == 'officer' %}
+            <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'create_tournament' %}" role="button" id="new_tournament">Create a new Tournament</a></td>
+          {% endif %}
+        </tr>
+        {% for tournament in tournaments %}
+        <tr>
+          <td>{{tournament.name}}</td>
+          <td>{{tournament.description}}</td>
+          <td>{{tournament.deadline_to_apply}}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

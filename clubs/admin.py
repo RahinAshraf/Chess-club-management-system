@@ -1,6 +1,6 @@
 """Configuration of the admin interface"""
 from django.contrib import admin
-from .models import User, MembershipType, Club
+from .models import User, MembershipType, Club, Tournament
 
 # Register your models here.
 @admin.register(User)
@@ -20,3 +20,5 @@ class UserAdmin(admin.ModelAdmin):
     ]
 
 admin.site.register(Club)
+
+admin.site.register(Tournament)
