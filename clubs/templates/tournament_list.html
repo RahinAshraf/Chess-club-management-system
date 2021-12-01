@@ -1,12 +1,18 @@
 {% extends 'base_content.html' %}
 {% block content %}
-
-{% comment %} <style>
+{% load officer %}
+<style>
 #new_tournament {
     background-color: #008000 !important;
     border-color: #008000 !important;
 }
-</style> {% endcomment %}
+</style> 
+<style>
+#withdraw {
+    background-color: #ff0000 !important;
+    border-color: #ff0000 !important;
+}
+</style>
 
 
 <div class="container">
@@ -27,10 +33,21 @@
           <td>{{tournament.name}}</td>
           <td>{{tournament.description}}</td>
           <td>{{tournament.deadline_to_apply}}</td>
-        </tr>
+            {% if request.user == tournament.organising_officer  %}
+            <!-- do not show the join_tournament button -->
+            {% else %}
+              {% if request.user|officer:tournament.id %}
+            <td><a class="btn btn-primary btn-sm text-nowrap" href="£" role="button" id="withdraw">Withdraw</a></td>
+              {% else%}
+            <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'participate_in_tournament' tournament.id %}" role="button" id="join_tournament">Join tournament</a></td>
+              {% endif %}
+          
+            {% endif %}
+          </tr>
         {% endfor %}
       </table>
     </div>
   </div>
 </div>
 {% endblock %}
+

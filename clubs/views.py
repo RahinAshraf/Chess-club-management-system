@@ -270,6 +270,7 @@ def create_new_club(request):
 @login_required
 def show_tournaments(request):
     current_user = request.user
+    
     try:
         current_user_club_name = request.session['club_choice']
         current_user_club = Club.objects.get(pk = request.session['club_choice'])
@@ -278,7 +279,7 @@ def show_tournaments(request):
     else:
         tournaments = Tournament.objects.filter(club = current_user_club)
         type = current_user.get_membership_type_in_club(current_user_club_name)
-        return render(request, 'tournament_list.html', {'tournaments': tournaments, "type": type})
+        return render(request, 'tournament_list.html', {'tournaments': tournaments, "type": type,})
 
 @login_required
 def create_new_tournament(request):
@@ -298,3 +299,19 @@ def create_new_tournament(request):
     else:
         form = CreateNewTournamentForm()
     return render(request, 'create_tournament.html', {'form':form})
+
+
+@login_required
+def participate_in_tournament(request,tournament_id):
+    current_user = request.user
+    tournament = Tournament.objects.get(id = tournament_id)
+    print(tournament)
+    tournament.participating_players.add(User.objects.get(email = request.user.email))
+    tournament_name = tournament.name
+    messages.add_message(request, messages.SUCCESS, "You have successfully joined the tournament: " + tournament_name)
+    return render(request, 'tournament_list.html', {"current_user":current_user,})
+
+
+
+
+

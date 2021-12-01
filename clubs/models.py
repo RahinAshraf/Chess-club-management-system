@@ -280,6 +280,7 @@ class Tournament(models.Model):
             if co_organising_officer.get_membership_type_in_club(self.club.name) != consts.OFFICER:
                 raise ValidationError('The co orginising officers must be an officer.')
     
+    
 
     def get_associated_members(self):
         """ Returns all associated players and organizers of the tournament."""
