@@ -1,6 +1,7 @@
 """Forms for the clubs app."""
 from django import forms
 from django.core.validators import RegexValidator
+from django.core.exceptions import ValidationError
 from django.db.models import fields
 from django.forms import widgets
 from .models import Tournament, User
@@ -100,5 +101,13 @@ class CreateNewTournamentForm(forms.ModelForm):
        model = Tournament
        fields = ['name', 'description', 'capacity', 'deadline_to_apply'] 
        widgets = {'description':forms.Textarea()}
+
+    def clean(self):
+        """Clean the data and generate messages for any errors."""
+
+        super().clean()
+        capacity = self.cleaned_data.get('capacity')
+        if not capacity:
+            raise ValidationError('Capacity cannot be blank')
         
     

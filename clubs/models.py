@@ -255,15 +255,18 @@ class Tournament(models.Model):
     participating_players = models.ManyToManyField(User,related_name='participating players+')
     name = models.CharField(max_length=70)
     description = models.CharField(max_length=190)
-    capacity = models.IntegerField(blank=False, validators=[MaxValueValidator(96),MinValueValidator(2)])
+    capacity = models.IntegerField(blank=False)
     organising_officer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organising officer+')
     co_organising_officers = models.ManyToManyField(User, blank=True, related_name='co-organising officers+')
     deadline_to_apply = models.DateTimeField(blank=False)
 
+    def _validate_maximum_and_minimum_value_of_capacity(self):
+        if int(self.capacity) < 2 or int(self.capacity) > 96:
+            raise ValidationError('Capacity constraints unfollowed')
 
     def _validate_participating_players_capacity(self):
         tournament = Tournament.objects.filter(pk = self.id)[0]
-        if len(tournament.participating_players.all()) > self.capacity:
+        if tournament.participating_players.all().count() > int(self.capacity):
             raise ValidationError('The number of participating players are not confirming to the capacity constraints.')
 
     def _validate_participating_players_must_not_include_organizers(self):
@@ -311,6 +314,7 @@ class Tournament(models.Model):
 
     def save(self, *args, **kwargs):
         tournament = super().save(*args, **kwargs)
+        self._validate_maximum_and_minimum_value_of_capacity()
         self._validate_participating_players_capacity()
         self._validate_participating_players_must_not_include_organizers()
         self._validate_organizer_type()
