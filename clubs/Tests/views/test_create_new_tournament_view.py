@@ -36,8 +36,8 @@ class CreateNewTournament(TestCase):
         self.form_input = {
             'name': 'Tournament1',
             'description': 'Description1',
-            'capacity': '12',
-            'deadline_to_apply': '2021-12-05 23:59'
+            'deadline_to_apply': '2021-12-05 23:59',
+            'capacity':'12'
         }
 
     def test_create_tournament_url(self):

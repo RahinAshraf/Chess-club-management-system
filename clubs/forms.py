@@ -99,15 +99,11 @@ class CreateNewTournamentForm(forms.ModelForm):
 
     class Meta:
        model = Tournament
-       fields = ['name', 'description', 'capacity', 'deadline_to_apply'] 
+       fields = ['name', 'description','deadline_to_apply'] 
        widgets = {'description':forms.Textarea()}
 
-    def clean(self):
-        """Clean the data and generate messages for any errors."""
-
-        super().clean()
-        capacity = self.cleaned_data.get('capacity')
-        if not capacity:
-            raise ValidationError('Capacity cannot be blank')
+    capacity = forms.IntegerField(min_value=2, max_value=96,required=True,
+                                error_messages={'required':'Please enter a capacity',
+                                'max_value':'The max value is 96','min_value':'The min value is 2'})
         
     

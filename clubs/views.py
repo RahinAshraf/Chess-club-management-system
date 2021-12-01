@@ -282,20 +282,19 @@ def show_tournaments(request):
 
 @login_required
 def create_new_tournament(request):
-    try:
-        current_user_club = Club.objects.get(pk = request.session['club_choice'])
-        if request.method == 'POST':
-            form = CreateNewTournamentForm(request.POST)
-            if form.is_valid():
-                Tournament = form.save(commit=False)
-                Tournament.organising_officer = request.user
-                Tournament.club = current_user_club
-                Tournament.save()
-                form.save()
-                return redirect('tournaments')
+    current_user_club = Club.objects.get(pk = request.session['club_choice'])
+    if request.method == 'POST':
+        form = CreateNewTournamentForm(request.POST)
+        if form.is_valid():
+            Tournament = form.save(commit=False)
+            Tournament.organising_officer = request.user
+            Tournament.club = current_user_club
+            capacity = form.cleaned_data.get('capacity')
+            Tournament.capacity = capacity
+            Tournament.save()
+            form.save()
+            return redirect('tournaments')
         
-    except:
-        return redirect('test')
     else:
         form = CreateNewTournamentForm()
     return render(request, 'create_tournament.html', {'form':form})
