@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.test import TestCase
 from django.urls import reverse
 from ...Constants import consts
-from ...models import User,MembershipType
+from ...models import User,MembershipType,Club
 
 class PromoteViewTestCase(TestCase):
 
@@ -16,8 +16,20 @@ class PromoteViewTestCase(TestCase):
             chess_experience_level=1,
             personal_statement="officerPersonal",
         )
-        MembershipType.objects.create(user=self.officer,type=consts.OFFICER)
+        self.owner = User.objects.create_user(
+            email="owner@example.org",
+            password="Pass123",
+            first_name="ownerFirst",
+            last_name="ownerLast",
+            public_bio="owner",
+            chess_experience_level=1,
+            personal_statement="owner",
+        )
+        self.club = Club.objects.create(club_owner=self.owner,name = "Club1", location = 'location1',
+            mission_statement = 'We want to allow all to play free chess')
+        MembershipType.objects.create(user=self.officer,type=consts.OFFICER, club=self.club)
         self.client.login(email=self.officer.email, password='Pass123')
+
 
         self.applicant = User.objects.create_user(
             email="applicant@example.org",
@@ -28,7 +40,7 @@ class PromoteViewTestCase(TestCase):
             chess_experience_level=1,
             personal_statement="applicantPersonal",
         )
-        MembershipType.objects.create(user=self.applicant, type=consts.APPLICANT)
+        MembershipType.objects.create(user=self.applicant, type=consts.APPLICANT, club=self.club)
 
         self.url = reverse("promote",kwargs={"user_id":self.applicant.pk})
 
@@ -38,12 +50,12 @@ class PromoteViewTestCase(TestCase):
 
 
     def test_promote_successful(self):
-        applicantType = MembershipType.objects.get(pk=self.applicant.pk).type
+        applicantType = MembershipType.objects.get(user = self.applicant, club = self.club).type
         self.assertEqual(applicantType, consts.APPLICANT)
-
+        response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         response = self.client.get(self.url, follow=True)
 
-        applicantType = MembershipType.objects.get(pk=self.applicant.pk).type
+        applicantType = MembershipType.objects.get(user = self.applicant, club = self.club).type
         self.assertEqual(applicantType, consts.MEMBER)
 
         response_url = reverse("user_list")
@@ -57,6 +69,7 @@ class PromoteViewTestCase(TestCase):
     def test_promote_nonexisting_user(self):
         userLength = len(User.objects.all())
         self.url = reverse("promote",kwargs={"user_id": userLength+1})
+        response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         response = self.client.get(self.url, follow=True)
 
         response_url = reverse("user_list")
@@ -69,6 +82,7 @@ class PromoteViewTestCase(TestCase):
 
     def test_cannot_promote(self):
         self.client.login(email=self.applicant.email, password='Pass123')
+        response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         response = self.client.get(self.url, follow=True)
 
         response_url = reverse("user_list")
@@ -79,18 +93,19 @@ class PromoteViewTestCase(TestCase):
         self.assertEqual(messages_list[0].level, messages.ERROR)
 
 
-    def test_promote_already_member(self):
-        applicantMembership = MembershipType.objects.get(pk=self.applicant.pk)
+    def test_promote_member(self):
+        applicantMembership = MembershipType.objects.get(user = self.applicant, club = self.club)
         applicantMembership.type = "member"
         applicantMembership.save()
 
-        applicantType = MembershipType.objects.get(pk=self.applicant.pk).type
+        applicantType = MembershipType.objects.get(user = self.applicant, club = self.club).type
         self.assertEqual(applicantType, consts.MEMBER)
 
+        response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         response = self.client.get(self.url, follow=True)
 
-        applicantType = MembershipType.objects.get(pk=self.applicant.pk).type
-        self.assertEqual(applicantType, consts.MEMBER)
+        applicantType = MembershipType.objects.get(user = self.applicant, club = self.club).type
+        self.assertEqual(applicantType, consts.OFFICER)
 
         response_url = reverse("user_list")
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)

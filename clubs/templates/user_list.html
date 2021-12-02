@@ -5,27 +5,62 @@
     <div class="col-12">
       <h1>Users</h1>
       <table class="table">
-        {% for user in users %}
+        <tr>
+          {% if type == 'member' %}
+            <td><b>Gravatar</b></td>
+            <td><b>Full Name</b></td>
+            <td><b>Bio</b></td>
+          {% else %}
+            <td><b>Gravatar</b></td>
+            <td><b>Email</b></td>
+            <td><b>Full Name</b></td>
+            <td><b>Bio</b></td>
+            <td><b>Personal Statement</b></td>
+            <td><b>Experience level</b></td>
+            <td><b>Date joined</b></td>
+            <td><b>Membership type</b></td>
+          {% endif %}
+        </tr>
+        {% for user, user_type in users.items %}
           <tr>
-            {% if type == 'member' or type == 'applicant' or type == None %}
+            {% if type == 'member' %}
               <td>
                 <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.username }}" class="rounded-circle" >
               </td>
               <td>{{ user.full_name }}</td>
-              <td>{{ user.public_bio }}</td>
+              <td><p>{{ user.public_bio }}</p></td>
+            {% elif type == 'officer' %}
+              <td>
+                <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.username }}" class="rounded-circle" >
+              </td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.full_name }}</td>
+              <td><p>{{ user.public_bio }}</p></td>
+              <td><p>{{ user.personal_statement }}</p></td>
+              <td>{{ user.chess_experience_level }}</td>
+              <td>{{ user.date_joined }}</td>
+              <td>{{ user_type }}</td>
+              {% if user_type == 'applicant' %}
+                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' user.id %}" role="button">promote to member</a></td>
+              {% endif %}
             {% else %}
               <td>
                 <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.username }}" class="rounded-circle" >
               </td>
               <td>{{ user.email }}</td>
               <td>{{ user.full_name }}</td>
-              <td>{{ user.public_bio }}</td>
-              <td>{{ user.personal_statement }}</td>
+              <td><p>{{ user.public_bio }}</p></td>
+              <td><p>{{ user.personal_statement }}</p></td>
               <td>{{ user.chess_experience_level }}</td>
               <td>{{ user.date_joined }}</td>
-              <td>{{ user.get_type }}</td>
-              {% if user.get_type == 'applicant' %}
+              <td>{{ user_type }}</td>
+              {% if user_type == 'applicant' %}
                 <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' user.id %}" role="button">promote to member</a></td>
+              {% elif user_type == 'member' %}
+                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' user.id %}" role="button">promote to officer</a></td>
+              {% elif user_type == 'officer' %}
+                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'demote' user.id %}" role="button">demote to member</a></td>
+                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'transfer_ownership' user.id %}" role="button">Transfer club ownership</a></td>
               {% endif %}
             {% endif %}
           </tr>

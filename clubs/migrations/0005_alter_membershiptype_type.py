@@ -15,6 +15,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='membershiptype',
             name='type',
-            field=models.CharField(max_length=20, validators=[clubs.models.validate_membership_type, clubs.models.validate_club_owner]),
+            field=models.CharField(max_length=20, validators=[clubs.models.validate_membership_type]),
         ),
     ]

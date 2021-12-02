@@ -1,0 +1,49 @@
+{% extends 'base_content.html' %}
+{% block content %}
+
+
+<!-- Style the 'create a new club button' to make it stand out from the rest of the buttons-->
+<style>
+#new_club {
+    background-color: #008000 !important;
+    border-color: #008000 !important;
+}
+</style>
+
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <h1>Clubs</h1>
+      <table class="table">
+      <tr>
+       <td><b>Club name</b></td>
+       <td><b>Club location</b></td>
+       <td><b>Club description</b></td>
+       <td><b>Number of members in the club</b></td>
+       <td><b>Owner gravatar</b></td>
+       <td><b>Owner name</b></td>
+       <td><b>Owner bio</b></td>
+       <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'create_new_club' %}" role="button" id="new_club">Create a new club</a></td>
+      </tr>
+        {% for club in clubs %}
+          <tr>
+            <td>{{club.name}}</td>
+            <td>{{club.location}}</td>
+            <td><p>{{club.mission_statement}}</p></td>
+            <td>{{club.get_number_of_members}}</td>
+            <td><img src="{{ club.club_owner.mini_gravatar }}" alt="Gravatar of {{ club.club_owner.username }}" class="rounded-circle"></td>
+            <td>{{club.club_owner}}</td>
+            <td><p>{{club.club_owner.public_bio}}</p></td>
+            {% if club not in existing_clubs%}
+              <td> <a class="btn btn-primary btn-sm text-nowrap" href="{% url 'apply_to_club' club.name %}" role="button">Apply to club</a> </td> </tr>
+            {% endif %}
+        {% endfor %}
+
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+
+

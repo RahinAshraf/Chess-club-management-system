@@ -1,8 +1,11 @@
 """Forms for the clubs app."""
 from django import forms
 from django.core.validators import RegexValidator
-from .models import User
-from .models import MembershipType
+from django.core.exceptions import ValidationError
+from django.db.models import fields
+from django.forms import widgets
+from .models import Tournament, User
+from .models import MembershipType, Club
 from .Constants import consts
 class SignUpForm(forms.ModelForm):
     """Form enabling unregistered users to sign up."""
@@ -47,7 +50,6 @@ class SignUpForm(forms.ModelForm):
             public_bio=self.cleaned_data.get('public_bio'),
             personal_statement=self.cleaned_data.get('personal_statement'),
         )
-        self.make_applicant(user=user)
         return user
 
     def make_applicant(self,user):
@@ -84,3 +86,24 @@ class PasswordForm(forms.Form):
             )]
     )
     password_confirmation = forms.CharField(label='Password confirmation', widget=forms.PasswordInput())
+
+
+class CreateNewClubForm(forms.ModelForm):
+
+    class Meta:
+        #Form options
+        model = Club
+        fields = ['name','location','mission_statement']
+
+class CreateNewTournamentForm(forms.ModelForm):
+
+    class Meta:
+       model = Tournament
+       fields = ['name', 'description','deadline_to_apply'] 
+       widgets = {'description':forms.Textarea()}
+
+    capacity = forms.IntegerField(min_value=2, max_value=96,required=True,
+                                error_messages={'required':'Please enter a capacity',
+                                'max_value':'The max value is 96','min_value':'The min value is 2'})
+        
+    
