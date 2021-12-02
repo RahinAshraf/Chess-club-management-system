@@ -13,8 +13,12 @@ from django.contrib.auth.hashers import check_password
 from .models import Tournament, User, MembershipType, Club
 from django.core.exceptions import ObjectDoesNotExist
 from .Constants import consts
+from .Utilities import promote_demote_helper
+def get_club_choice(request):
+    """Utility function to return the club name the user has selected."""
+    return request.session['club_choice']
 
-# Create your views here.
+
 
 def home(request):
     if request.user.is_authenticated:
@@ -112,102 +116,99 @@ def profile(request):
         form = UserForm(instance=current_user)
     return render(request, 'profile.html', {'form': form})
 
+def get_promote_and_demote_subject_user_with_club(request, user_id):
+    """This function returns a dictionary of the subject user along with
+        the current selection of club in the session and the membership object.
+        It raises an exception with the membership object is not found."""
+    try:
+        user = User.objects.get(pk=user_id)
+        user_club = get_club_choice(request=request)
+        if user_club:
+            membership = MembershipType.objects.get(user=user, club = user_club)
+        else:
+            membership = None
+        return {'membership':membership,'subject_user':user,'user_club':user_club}
+    except ObjectDoesNotExist:
+        raise ObjectDoesNotExist
+
 @login_required
 def promote(request, user_id):
     """user_id: the primary key of the user being promoted to 'member'
     Officers and Club Owners are able to promote specific applicants to members"""
     try:
-        user = User.objects.get(pk=user_id)
-        if request.session['club_choice']:
-            membership = MembershipType.objects.get(user=user, club = request.session['club_choice'])
-        else:
-            membership = None
+        subject_user_details = get_promote_and_demote_subject_user_with_club(request, user_id)
+        user_club = subject_user_details['user_club']
+        membership = subject_user_details['membership']
 
     except ObjectDoesNotExist:
         messages.add_message(request, messages.ERROR, "Invalid user to promote")
         return redirect("user_list")
     else:
         current_user = request.user
-        membership_type_of_current_user = current_user.get_membership_type_in_club(request.session['club_choice'])
+        membership_type_of_current_user = current_user.get_membership_type_in_club(user_club)
         if membership_type_of_current_user==consts.OFFICER or membership_type_of_current_user==consts.CLUB_OWNER:
-            if (membership.type=="applicant"):
-                membership.type = "member"
-                membership.save()
-                messages.add_message(request, messages.SUCCESS, "User successfully promoted to member")
-            elif (membership.type=="member"):
-                membership.type = "officer"
-                membership.save()
-                messages.add_message(request, messages.INFO, "User successfully promoted to officer")
-            else:
-                messages.add_message(request, messages.INFO, "User is already a member")
-
-            return redirect("user_list")
+            new_type = promote_demote_helper.promote_user[membership.type]
+            membership.type = new_type
+            membership.save()
+            message_string = "User has been successfully promoted to" + new_type
+            messages.add_message(request,messages.SUCCESS, message_string)
         else:
             messages.add_message(request, messages.ERROR, "You are not are not allowed to promote users")
-            return redirect("user_list")
+        return redirect("user_list")
 
 @login_required
 def demote(request, user_id):
     try:
-        user = User.objects.get(pk=user_id)
-        if request.session['club_choice']:
-            membership = MembershipType.objects.get(user=user, club = request.session['club_choice'])
-        else:
-            membership = None
-
+        subject_user_details = get_promote_and_demote_subject_user_with_club(request, user_id)
+        user_club = subject_user_details['user_club']
+        membership = subject_user_details['membership']
     except ObjectDoesNotExist:
         messages.add_message(request, messages.ERROR, "Invalid user")
         return redirect("user_list")
     else:
         current_user = request.user
-        membership_type_of_current_user = current_user.get_membership_type_in_club(request.session['club_choice'])
+        membership_type_of_current_user = current_user.get_membership_type_in_club(user_club)
         if membership_type_of_current_user==consts.CLUB_OWNER:
-            if (membership.type=="officer"):
-                membership.type = "member"
-                membership.save()
-                messages.add_message(request, messages.SUCCESS, "User successfully demoted to member")
-
-            return redirect("user_list")
+            new_type = promote_demote_helper.demote_user[membership.type]
+            membership.type = new_type
+            membership.save()
+            message_string = "User has been successfully demoted to" + new_type
+            messages.add_message(request,messages.SUCCESS, message_string)
         else:
             messages.add_message(request, messages.ERROR, "You are not are not allowed to deomote users")
-            return redirect("user_list")
+        return redirect("user_list")
 
 @login_required
 def transfer_ownership(request, user_id):
     try:
-        user = User.objects.get(pk=user_id)
-        club = request.session['club_choice']
-        membership = MembershipType.objects.get(user=user, club = club)
+        subject_user_details = get_promote_and_demote_subject_user_with_club(request, user_id)
+        user_club = subject_user_details['user_club']
+        membership = subject_user_details['membership']
+        user = subject_user_details['subject_user']
 
     except ObjectDoesNotExist:
         messages.add_message(request, messages.ERROR, "Invalid user")
         return redirect("user_list")
     else:
         current_user = request.user
-
-        owner_membership = MembershipType.objects.get(user=current_user, club = club)
-        owner_membership_type = current_user.get_membership_type_in_club(club = club)
-        if owner_membership_type==consts.CLUB_OWNER:
+        owner_membership = MembershipType.objects.get(user=current_user, club = user_club)
+        if owner_membership.type==consts.CLUB_OWNER:
             if (membership.type=="officer"):
-                owner_membership.type = "officer"
+                new_type = promote_demote_helper.demote_user[owner_membership.type]
+                owner_membership.type = new_type 
                 owner_membership.save()
-                membership.type = "club_owner"
+                membership.type = promote_demote_helper.promote_user[membership.type]
                 membership.save()
-                user_club = Club.objects.get(pk = club)
-                user_club.club_owner = user
-                user_club.save()
+                # Modifying the club owner of the Club model
+                club = Club.objects.get(pk = user_club)
+                club.club_owner = user
+                club.save()
                 messages.add_message(request, messages.SUCCESS, "Ownership successfully transferred")
             else:
                 messages.add_message(request, messages.ERROR, "You are only allowed to transfer the ownership to an officer")
-                return redirect("user_list")
-
-            return redirect("user_list")
         else:
             messages.add_message(request, messages.ERROR, "You are not are not allowed to transfer ownership")
-            return redirect("user_list")
-
-
-
+        return redirect("user_list")
 
 @login_required
 def password(request):
@@ -323,8 +324,3 @@ def participate_in_tournament(request,tournament_id):
     tournament_name = tournament.name
     messages.add_message(request, messages.SUCCESS, "You have successfully joined the tournament: " + tournament_name)
     return render(request, 'tournament_list.html', {"current_user":current_user,})
-
-
-
-
-
