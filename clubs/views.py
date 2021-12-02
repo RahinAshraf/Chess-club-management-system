@@ -5,6 +5,9 @@ from django.contrib.auth import authenticate, login, logout
 from .helpers import login_prohibited
 from .forms import LogInForm, UserForm, PasswordForm, CreateNewClubForm
 from django.contrib import messages
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from .models import Tournament, User, MembershipType, Club
@@ -41,26 +44,36 @@ def sign_up(request):
         form = SignUpForm()
     return render(request, 'sign_up.html', {'form': form})
 
+class LogInView(View):
+    """ View that handles Log in. """
 
-def log_in(request):
-    if request.method == 'POST':
+    http_method_names = ['get', 'post']
+
+    @method_decorator(login_prohibited)
+    def dispatch(self, request):
+        return super().dispatch(request)
+
+    def get(self, request):
+        """ Display Log In template. """
+        self.next = request.GET.get('next') or ''
+        return self.render()
+
+    def post(self, request):
+        """Handle Log In attempt."""
         form = LogInForm(request.POST)
-        next = request.POST.get('next') or ''
-        if form.is_valid():
-            email = form.cleaned_data.get('email')
-            password = form.cleaned_data.get('password')
-            user = authenticate(email=email, password=password)
-            if user is not None:
-                login(request, user)
-                redirect_url = next or 'test'
-                return redirect(redirect_url)
+        self.next = request.POST.get('next') or 'test'
+        user = form.get_user()
+        if user is not None:
+            login(request, user)
+            return redirect(self.next)
         messages.add_message(request, messages.ERROR, "The credentials provided were invalid!")
-    else:
-        next = request.GET.get('next') or ''
-    form = LogInForm()
-    return render(request, 'log_in.html', {'form': form, 'next': next})
+        return self.render()
 
-
+    def render(self):
+        """ Render Log in template with blank log in form."""
+        form = LogInForm()
+        return render(self.request, 'log_in.html', {'form': form, 'next': self.next})
+        
 def log_out(request):
     logout(request)
     return redirect('home')

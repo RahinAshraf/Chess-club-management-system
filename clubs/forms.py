@@ -2,6 +2,7 @@
 from django import forms
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
+from django.contrib.auth import authenticate
 from django.db.models import fields
 from django.forms import widgets
 from .models import Tournament, User
@@ -60,6 +61,16 @@ class LogInForm(forms.Form):
 
     email = forms.EmailField(label="Email")
     password = forms.CharField(label="Password", widget=forms.PasswordInput())
+
+    def get_user(self):
+        """Returns authenticated user if possible."""
+        user = None
+        if self.is_valid():
+            email = self.cleaned_data.get('email')
+            password = self.cleaned_data.get('password')
+            user = authenticate(email=email, password=password)
+        
+        return user
 
 class UserForm(forms.ModelForm):
     """Form to update user profiles."""
