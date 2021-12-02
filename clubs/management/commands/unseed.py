@@ -1,5 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
-from clubs.models import User, Club, MembershipType
+from clubs.models import User, Club, MembershipType, Tournament
 
 class Command(BaseCommand):
         """The database unseeder."""
@@ -8,3 +8,4 @@ class Command(BaseCommand):
             User.objects.filter(is_staff=False, is_superuser=False).delete()
             Club.objects.all().delete()
             MembershipType.objects.all().delete()
+            Tournament.objects.all().delete()

@@ -1,8 +1,9 @@
 from django.core.management.base import BaseCommand, CommandError
 from faker import Faker
-from clubs.models import User, Club, MembershipType
+from clubs.models import User, Club, MembershipType, Tournament
 from ...Constants import consts
 import random
+from datetime import date, timedelta
 
 class UniqueFaker(Faker):
     """
@@ -37,21 +38,25 @@ class Command(BaseCommand):
 
         while club_count < Command.CLUB_COUNT:
             print(f'Seeding club {club_count}',  end='\r')
-            try:
-                self._create_club()
-            except (django.db.utils.IntegrityError):
-                continue
+            self._create_club()
             club_count += 1
         print('Club seeding complete')
 
         while user_count < Command.USER_COUNT:
             print(f'Seeding user {user_count}',  end='\r')
-            try:
-                self._create_user(True)
-            except (django.db.utils.IntegrityError):
-                continue
+            self._create_user(True)
             user_count += 1
         print('User seeding complete')
+
+        self._create_base_tournaments()
+
+        for club in Club.objects.all():
+            club_count = 0
+            print(f'Seeding tournament in club {club_count}',  end='\r')
+            if random.randint(1, 3) < 2 :
+                self._create_tournament(club)
+            club_count += 1
+        print('Tournament seeding complete')
 
     def _create_base_users(self):
         User.objects.create_user(
@@ -123,7 +128,7 @@ class Command(BaseCommand):
         MembershipType.objects.create(
             user = User.objects.get(email = 'val@example.org'),
             club = club,
-            type = consts.MEMBER,
+            type = consts.OFFICER,
         )
 
         MembershipType.objects.create(
@@ -143,6 +148,32 @@ class Command(BaseCommand):
             club = Club.objects.get(name = 'Bill Chess Club'),
             type = consts.MEMBER
         )
+
+    def _create_base_tournaments(self):
+        club = Club.objects.get(name = 'Kerbal Chess Club')
+        tournament1 = Tournament.objects.create(
+            club = club,
+            name = f'{self.faker.last_name()} Chess Tournament',
+            description = self.faker.text(max_nb_chars=200),
+            capacity = 15,
+            organising_officer = User.objects.get(email = 'val@example.org'),
+            deadline_to_apply = date.today() + timedelta(days=1)
+        )
+
+
+        tournament2 = Tournament.objects.create(
+            club = club,
+            name = f'{self.faker.last_name()} Chess Tournament',
+            description = self.faker.text(max_nb_chars=200),
+            capacity = 12,
+            organising_officer = User.objects.get(email = 'val@example.org'),
+            deadline_to_apply = date.today() - timedelta(days=1)
+        )
+
+        users = club.get_all_users()
+        tournament2.participating_players.add(User.objects.get(email = 'jeb@example.org'))
+        for i in range (0, random.randint(1, len(users))) :
+            tournament2.participating_players.add(random.choice(users))
 
 
     def _create_user(self, regular):
@@ -187,6 +218,22 @@ class Command(BaseCommand):
             location = self.faker.city(),
             mission_statement = self.faker.text(max_nb_chars=200)
         )
+
+    def _create_tournament(self, club):
+        officers = [k for k,v in club.get_all_users_with_types().items() if v == consts.OFFICER]
+        if officers is not None :
+            organizer = random.choice(officers)
+            tournament = Tournament.objects.create(
+                    club = club,
+                    name = f'{self.faker.last_name()} Chess Tournament',
+                    description = self.faker.text(max_nb_chars=100),
+                    capacity = random.randint(6, 20),
+                    organising_officer = organizer,
+                    deadline_to_apply = date.today() + timedelta(days=random.randint(1, 10))
+            )
+            users = club.get_all_users()
+            for i in range (0, random.randint(1, len(users))) :
+                tournament.participating_players.add(random.choice(users))
 
     def _email(self, first_name, last_name):
         email = f'{first_name}.{last_name}@example.org'
