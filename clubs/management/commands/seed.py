@@ -12,7 +12,8 @@ class Command(BaseCommand):
         self.faker = Faker('en_GB')
 
     def handle(self, *args, **options):
-        user_count = 0
+        self._create_base_users()
+        user_count = 3
         while user_count < Command.USER_COUNT:
             print(f'Seeding user {user_count}',  end='\r')
             try:
@@ -21,6 +22,37 @@ class Command(BaseCommand):
                 continue
             user_count += 1
         print('User seeding complete')
+
+    def _create_base_users(self):
+        User.objects.create_user(
+            'jeb@example.org',
+            first_name='Jebediah',
+            last_name='Kerman',
+            chess_experience_level=random.randint(1, 5),
+            password=Command.PASSWORD,
+            public_bio=self.faker.text(max_nb_chars=520),
+            personal_statement=self.faker.text(max_nb_chars=200)
+        )
+
+        User.objects.create_user(
+            'val@example.org',
+            first_name='Valentina',
+            last_name='Kerman',
+            chess_experience_level=random.randint(1, 5),
+            password=Command.PASSWORD,
+            public_bio=self.faker.text(max_nb_chars=520),
+            personal_statement=self.faker.text(max_nb_chars=200)
+        )
+
+        User.objects.create_user(
+            'billie@example.org',
+            first_name='Billie',
+            last_name='Kerman',
+            chess_experience_level=random.randint(1, 5),
+            password=Command.PASSWORD,
+            public_bio=self.faker.text(max_nb_chars=520),
+            personal_statement=self.faker.text(max_nb_chars=200)
+        )
 
     def _create_user(self):
         first_name = self.faker.first_name()
