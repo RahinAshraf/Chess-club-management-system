@@ -212,7 +212,6 @@ def transfer_ownership(request, user_id):
         user_club = subject_user_details['user_club']
         membership = subject_user_details['membership']
         user = subject_user_details['subject_user']
-
     except ObjectDoesNotExist:
         messages.add_message(request, messages.ERROR, "Invalid user")
         return redirect("user_list")
@@ -267,7 +266,6 @@ def club_list(request):
     current_user = request.user
     existing_clubs_of_user = current_user.get_clubs()
     return render(request, 'club_list.html', {'clubs': clubs, 'existing_clubs':existing_clubs_of_user})
-
 
 @login_required
 def apply_to_club(request, club_name):
