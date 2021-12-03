@@ -5,7 +5,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.db.models.constraints import UniqueConstraint
 from django.db.models.expressions import F
 from django.utils.translation import ugettext_lazy as _
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
 from .Constants import consts
 from libgravatar import Gravatar
@@ -248,3 +248,71 @@ class MembershipType(models.Model):
         if self.type == consts.CLUB_OWNER:
             if len(MembershipType.objects.filter(club = self.club).filter(type = consts.CLUB_OWNER)) >= 1:
                 raise ValidationError('There can only be one club owner')
+
+class Tournament(models.Model):
+    id = models.AutoField(primary_key=True)
+    club = models.ForeignKey(Club, on_delete=models.CASCADE)
+    participating_players = models.ManyToManyField(User,related_name='participating players+')
+    name = models.CharField(max_length=70)
+    description = models.CharField(max_length=190)
+    capacity = models.IntegerField(blank=False, validators = [MinValueValidator(2),MaxValueValidator(96)])
+    organising_officer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organising officer+')
+    co_organising_officers = models.ManyToManyField(User, blank=True, related_name='co-organising officers+')
+    deadline_to_apply = models.DateTimeField(blank=False)
+
+    def _validate_participating_players_capacity(self):
+        tournament = Tournament.objects.filter(pk = self.id)[0]
+        if tournament.participating_players.all().count() > int(self.capacity):
+            raise ValidationError('The number of participating players are not confirming to the capacity constraints.')
+
+    def _validate_participating_players_must_not_include_organizers(self):
+        tournament = Tournament.objects.filter(pk = self.id)[0]
+        if tournament.participating_players.all().count() != 0:
+            for player in tournament.participating_players.all():
+                if player == self.organising_officer:
+                    raise ValidationError('The organiser cannot participate.')
+
+    def _validate_organizer_type(self):
+        if self.organising_officer.get_membership_type_in_club(self.club.name) != consts.OFFICER:
+            raise ValidationError('The organiser must be an officer.')
+        tournament = Tournament.objects.filter(pk = self.id)[0]
+        for co_organising_officer in tournament.co_organising_officers.all():
+            if co_organising_officer.get_membership_type_in_club(self.club.name) != consts.OFFICER:
+                raise ValidationError('The co orginising officers must be an officer.')
+    
+    
+
+    def get_associated_members(self):
+        """ Returns all associated players and organizers of the tournament."""
+
+        associated_member_list = []
+
+        tournament = Tournament.objects.get(pk = self.id)
+
+        # Adding Players
+
+        for player in tournament.participating_players.all():
+            associated_member_list.append(player)
+        
+        # Adding the organising officer
+
+        associated_member_list.append(self.organising_officer)
+
+        # Adding the co - organizing officer(s)
+        for co_organising_officer in tournament.co_organising_officers.all():
+            associated_member_list.append(co_organising_officer)
+
+        return associated_member_list
+
+    def get_number_of_participating_players(self):
+
+        tournament = Tournament.objects.filter(pk = self.id)
+
+        return tournament.participating_players.all().count()
+
+    def save(self, *args, **kwargs):
+        tournament = super().save(*args, **kwargs)
+        self._validate_participating_players_capacity()
+        self._validate_participating_players_must_not_include_organizers()
+        self._validate_organizer_type()
+        return tournament

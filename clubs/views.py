@@ -1,13 +1,13 @@
 from django.shortcuts import redirect, render
 from django.http import HttpResponse, response
-from .forms import SignUpForm
+from .forms import CreateNewTournamentForm, SignUpForm
 from django.contrib.auth import authenticate, login, logout
 from .helpers import login_prohibited
 from .forms import LogInForm, UserForm, PasswordForm, CreateNewClubForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
-from .models import User, MembershipType, Club
+from .models import Tournament, User, MembershipType, Club
 from django.core.exceptions import ObjectDoesNotExist
 from .Constants import consts
 
@@ -266,3 +266,52 @@ def create_new_club(request):
     else:
         form = CreateNewClubForm()
     return render(request, 'create_club.html', {'form': form})
+
+@login_required
+def show_tournaments(request):
+    current_user = request.user
+    
+    try:
+        current_user_club_name = request.session['club_choice']
+        current_user_club = Club.objects.get(pk = request.session['club_choice'])
+    except:
+        return redirect('test')
+    else:
+        tournaments = Tournament.objects.filter(club = current_user_club)
+        type = current_user.get_membership_type_in_club(current_user_club_name)
+        return render(request, 'tournament_list.html', {'tournaments': tournaments, "type": type,})
+
+@login_required
+def create_new_tournament(request):
+    current_user_club = Club.objects.get(pk = request.session['club_choice'])
+    if request.method == 'POST':
+        form = CreateNewTournamentForm(request.POST)
+        if form.is_valid():
+            Tournament = form.save(commit=False)
+            Tournament.organising_officer = request.user
+            Tournament.club = current_user_club
+            capacity = form.cleaned_data.get('capacity')
+            Tournament.capacity = capacity
+            Tournament.save()
+            form.save()
+            return redirect('tournaments')
+        
+    else:
+        form = CreateNewTournamentForm()
+    return render(request, 'create_tournament.html', {'form':form})
+
+
+@login_required
+def participate_in_tournament(request,tournament_id):
+    current_user = request.user
+    tournament = Tournament.objects.get(id = tournament_id)
+    print(tournament)
+    tournament.participating_players.add(User.objects.get(email = request.user.email))
+    tournament_name = tournament.name
+    messages.add_message(request, messages.SUCCESS, "You have successfully joined the tournament: " + tournament_name)
+    return render(request, 'tournament_list.html', {"current_user":current_user,})
+
+
+
+
+
