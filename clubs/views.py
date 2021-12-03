@@ -16,7 +16,8 @@ from django.views.generic.edit import FormView
 from django.urls import reverse
 from .Constants import consts
 from django.utils import timezone
-from .Utilities import promote_demote_helper,create_applicant_membership_to_clubs,apply_tournament,switch_user_club
+from .Utilities import promote_demote_helper,create_applicant_membership_to_clubs,apply_tournament,switch_user_club,withdraw_tournament
+
 def get_club_choice(request):
     """Utility function to return the club name the user has selected."""
     return request.session['club_choice']
@@ -59,7 +60,7 @@ class HomeView(LoginProhibitedMixin,View):
 
     def get(self, request):
         return render(request, 'home.html')
-    
+
 class LogInView(LoginProhibitedMixin,View):
     """ View that handles Log in. """
 
@@ -102,7 +103,7 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
     def get_success_url(self):
         return reverse('test')
-        
+
 def log_out(request):
     logout(request)
     return redirect('home')
@@ -238,7 +239,6 @@ class CreateNewTournamentView(LoginRequiredMixin,CreateView):
 @login_required
 def participate_in_tournament(request,tournament_id):
     current_user = request.user
-
     tournament = Tournament.objects.get(id = tournament_id)
     tournament_deadline = tournament.deadline_to_apply
     tournament_capacity = tournament.capacity
@@ -249,12 +249,8 @@ def participate_in_tournament(request,tournament_id):
     elif current_time > tournament_deadline:
         messages.add_message(request, messages.ERROR, "It is now too late to join the tournament.")
     else:
-        tournament.participating_players.add(User.objects.get(email = request.user.email))
-        tournament_name = tournament.name
-        messages.add_message(request, messages.SUCCESS, "You have successfully joined the tournament: " + tournament_name)
-#     success_string = apply_tournament.apply_for_tournament(request=request,tournament_id=tournament_id)
-#     messages.add_message(request, messages.SUCCESS, success_string)
-#     return render(request, 'tournament_list.html', {"current_user":current_user,})
+        success_string = apply_tournament.apply_for_tournament(request=request,tournament_id=tournament_id)
+        messages.add_message(request, messages.SUCCESS, success_string)
     return redirect("tournaments")
 
 @login_required
@@ -266,7 +262,6 @@ def withdraw_from_tournament(request,tournament_id):
     if current_time > tournament_deadline:
         messages.add_message(request, messages.ERROR, "You can not withdraw from the tournament, it's too late!")
     else:
-        tournament.participating_players.remove(User.objects.get(email = request.user.email))
-        tournament_name = tournament.name
-        messages.add_message(request, messages.SUCCESS, "You have successfully withdraw from the tournament: " + tournament_name)
+        success_string = withdraw_tournament.withdraw_from_tournament(request=request,tournament_id=tournament_id)
+        messages.add_message(request, messages.SUCCESS, success_string)
     return redirect("tournaments")
