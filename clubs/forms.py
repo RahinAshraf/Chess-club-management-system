@@ -2,6 +2,9 @@
 from django import forms
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
+from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import check_password
+from django.contrib.auth import login
 from django.db.models import fields
 from django.forms import widgets
 from .models import Tournament, User
@@ -61,6 +64,16 @@ class LogInForm(forms.Form):
     email = forms.EmailField(label="Email")
     password = forms.CharField(label="Password", widget=forms.PasswordInput())
 
+    def get_user(self):
+        """Returns authenticated user if possible."""
+        user = None
+        if self.is_valid():
+            email = self.cleaned_data.get('email')
+            password = self.cleaned_data.get('password')
+            user = authenticate(email=email, password=password)
+        
+        return user
+
 class UserForm(forms.ModelForm):
     """Form to update user profiles."""
 
@@ -87,6 +100,20 @@ class PasswordForm(forms.Form):
     )
     password_confirmation = forms.CharField(label='Password confirmation', widget=forms.PasswordInput())
 
+    def process_valid_data(self,request):
+        if self.is_valid():
+            password = self.cleaned_data.get('password')
+            if check_password(password, request.user.password):
+                new_password = self.cleaned_data.get('new_password')
+                request.user.set_password(new_password)
+                request.user.save()
+                login(request, request.user)
+                return True
+            else:
+                return False
+        else:
+            return False
+
 
 class CreateNewClubForm(forms.ModelForm):
 
@@ -94,6 +121,18 @@ class CreateNewClubForm(forms.ModelForm):
         #Form options
         model = Club
         fields = ['name','location','mission_statement']
+
+    def process_valid_form(self,user):
+        """This method processes valid form data. It creates the necessary models and relationships
+           when valid data is sent."""
+        if self.is_valid():
+            club = self.save(commit=False)
+            club.club_owner = user
+            club.save()
+            # Create the new membership type. 
+            # The membership is being manually created because the club models' save method is called instead of create 
+            # which does not automatically create the new membership.
+            MembershipType.objects.create(user = user, club = club, type = consts.CLUB_OWNER)
 
 class CreateNewTournamentForm(forms.ModelForm):
 
@@ -106,4 +145,16 @@ class CreateNewTournamentForm(forms.ModelForm):
                                 error_messages={'required':'Please enter a capacity',
                                 'max_value':'The max value is 96','min_value':'The min value is 2'})
         
-    
+    def process_form_with_organiser_data(self,current_user_club,organising_officer):
+        """This method takes in the current club of the organiser and the organiser
+           to create a valid instance of Tournament object. If successfully created, it will
+           return the result of save being called on Tournament."""
+        if self.is_valid():
+            Tournament = self.save(commit=False)
+            Tournament.organising_officer = organising_officer
+            Tournament.club = current_user_club
+            capacity = self.cleaned_data.get('capacity')
+            Tournament.capacity = capacity
+            return Tournament.save()
+        else:
+            return None

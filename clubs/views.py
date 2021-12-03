@@ -1,67 +1,108 @@
+from django.contrib.messages.api import success
 from django.shortcuts import redirect, render
-from django.http import HttpResponse, response
 from .forms import CreateNewTournamentForm, SignUpForm
-from django.contrib.auth import authenticate, login, logout
-from .helpers import login_prohibited
+from django.contrib.auth import login, logout
+from django.views.generic.edit import UpdateView
 from .forms import LogInForm, UserForm, PasswordForm, CreateNewClubForm
 from django.contrib import messages
+from django.views import View
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic.edit import CreateView
 from .models import Tournament, User, MembershipType, Club
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
+from django.views.generic.edit import FormView
+from django.urls import reverse
 from .Constants import consts
 from django.utils import timezone
+from .Utilities import promote_demote_helper,create_applicant_membership_to_clubs,apply_tournament,switch_user_club
+def get_club_choice(request):
+    """Utility function to return the club name the user has selected."""
+    return request.session['club_choice']
 
-# Create your views here.
+class TestView(LoginRequiredMixin,View):
+    http_method_names = ['get']
 
-def home(request):
-    if request.user.is_authenticated:
-        return redirect('test')
-    else :
+    def get(self, request):
+       self.club = None
+       self.membership_type = None
+       try:
+           self.club = request.session['club_choice']
+           self.membership_type = request.user.get_membership_type_in_club(self.club)
+       except:
+            render(request, 'test.html', {'club':None, 'membership_type':None})
+       return render(request, 'test.html', {'club':self.club, 'membership_type':self.membership_type})
+
+class LoginProhibitedMixin:
+    """Mixin that redirects when a user is logged in."""
+    redirect_when_logged_in_url = None
+
+    def dispatch(self, *args, **kwargs):
+        """Redirect when logged in, or dispatch as normal otherwise."""
+        if self.request.user.is_authenticated:
+            url = self.get_redirect_when_logged_in_url()
+            return redirect(url)
+        return super().dispatch(*args, **kwargs)
+
+    def get_redirect_when_logged_in_url(self):
+        """Returns the url to be redirected to"""
+        if self.redirect_when_logged_in_url == None:
+            raise ImproperlyConfigured()
+        else:
+            return self.redirect_when_logged_in_url
+
+class HomeView(LoginProhibitedMixin,View):
+    http_method_names = ['get']
+
+    redirect_when_logged_in_url = 'test'
+
+    def get(self, request):
         return render(request, 'home.html')
+    
+class LogInView(LoginProhibitedMixin,View):
+    """ View that handles Log in. """
 
-def test(request):
-    club = None
-    membership_type = None
-    try:
-        club = request.session['club_choice']
-        membership_type = request.user.get_membership_type_in_club(request.session['club_choice'])
-    except:
-        render(request, 'test.html', {'club':None, 'membership_type':None})
+    http_method_names = ['get', 'post']
 
-    return render(request, 'test.html', {'club':club, 'membership_type':membership_type})
+    redirect_when_logged_in_url = 'test'
 
-def sign_up(request):
-    if request.method == 'POST':
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request,user)
-            return redirect('test')
-    else:
-        form = SignUpForm()
-    return render(request, 'sign_up.html', {'form': form})
+    def get(self, request):
+        """ Display Log In template. """
+        self.next = request.GET.get('next') or ''
+        return self.render()
 
-
-def log_in(request):
-    if request.method == 'POST':
+    def post(self, request):
+        """Handle Log In attempt."""
         form = LogInForm(request.POST)
-        next = request.POST.get('next') or ''
-        if form.is_valid():
-            email = form.cleaned_data.get('email')
-            password = form.cleaned_data.get('password')
-            user = authenticate(email=email, password=password)
-            if user is not None:
-                login(request, user)
-                redirect_url = next or 'test'
-                return redirect(redirect_url)
+        self.next = request.POST.get('next') or 'test'
+        user = form.get_user()
+        if user is not None:
+            login(request, user)
+            return redirect(self.next)
         messages.add_message(request, messages.ERROR, "The credentials provided were invalid!")
-    else:
-        next = request.GET.get('next') or ''
-    form = LogInForm()
-    return render(request, 'log_in.html', {'form': form, 'next': next})
+        return self.render()
 
+    def render(self):
+        """ Render Log in template with blank log in form."""
+        form = LogInForm()
+        return render(self.request, 'log_in.html', {'form': form, 'next': self.next})
 
+class SignUpView(LoginProhibitedMixin, FormView):
+    """View that signs up user."""
+
+    form_class = SignUpForm
+    template_name = "sign_up.html"
+    redirect_when_logged_in_url = 'test'
+
+    def form_valid(self, form):
+        self.object = form.save()
+        login(self.request, self.object)
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('test')
+        
 def log_out(request):
     logout(request)
     return redirect('home')
@@ -71,144 +112,45 @@ def edit_details(request):
 
 @login_required
 def switch_club(request):
-    """Whenever the user chooses a club from the drop down in the navbar,
-    the club object is saved in request.session['club_choice']
-    and the user is redirected back to the same page.
-    If the previous page doesn't exist, user is redirected to the test page"""
+    return switch_user_club.help_switch_club(request=request)
 
-    previous_url = request.META.get('HTTP_REFERER')
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+    """View to update logged-in user's profile."""
 
-    club = request.GET.get('club_choice', False)
-    if club!=False:
-        request.session['club_choice'] = club
+    model = UserForm
+    template_name = "profile.html"
+    form_class = UserForm
 
-    if previous_url:
-        return redirect(previous_url)
-    else:
-        return redirect('test')
+    def get_object(self):
+        """Return the object (user) to be updated."""
+        user = self.request.user
+        return user
 
-@login_required
-def profile(request):
-    current_user = request.user
-    if request.method == 'POST':
-        form = UserForm(instance=current_user, data=request.POST)
-        if form.is_valid():
-            messages.add_message(request, messages.SUCCESS, "Profile updated!")
-            form.save()
-            return redirect('test')
-    else:
-        form = UserForm(instance=current_user)
-    return render(request, 'profile.html', {'form': form})
+    def get_success_url(self):
+        """Return redirect URL after successful update."""
+        messages.add_message(self.request, messages.SUCCESS, "Profile updated!")
+        return reverse('test')
 
 @login_required
 def promote(request, user_id):
-    """user_id: the primary key of the user being promoted to 'member'
-    Officers and Club Owners are able to promote specific applicants to members"""
-    try:
-        user = User.objects.get(pk=user_id)
-        if request.session['club_choice']:
-            membership = MembershipType.objects.get(user=user, club = request.session['club_choice'])
-        else:
-            membership = None
-
-    except ObjectDoesNotExist:
-        messages.add_message(request, messages.ERROR, "Invalid user to promote")
-        return redirect("user_list")
-    else:
-        current_user = request.user
-        membership_type_of_current_user = current_user.get_membership_type_in_club(request.session['club_choice'])
-        if membership_type_of_current_user==consts.OFFICER or membership_type_of_current_user==consts.CLUB_OWNER:
-            if (membership.type=="applicant"):
-                membership.type = "member"
-                membership.save()
-                messages.add_message(request, messages.SUCCESS, "User successfully promoted to member")
-            elif (membership.type=="member"):
-                membership.type = "officer"
-                membership.save()
-                messages.add_message(request, messages.SUCCESS, "User successfully promoted to officer")
-            else:
-                messages.add_message(request, messages.INFO, "User is already a member")
-
-            return redirect("user_list")
-        else:
-            messages.add_message(request, messages.ERROR, "You are not are not allowed to promote users")
-            return redirect("user_list")
+    return promote_demote_helper.help_promote(request=request,user_id=user_id)
 
 @login_required
 def demote(request, user_id):
-    try:
-        user = User.objects.get(pk=user_id)
-        if request.session['club_choice']:
-            membership = MembershipType.objects.get(user=user, club = request.session['club_choice'])
-        else:
-            membership = None
-
-    except ObjectDoesNotExist:
-        messages.add_message(request, messages.ERROR, "Invalid user")
-        return redirect("user_list")
-    else:
-        current_user = request.user
-        membership_type_of_current_user = current_user.get_membership_type_in_club(request.session['club_choice'])
-        if membership_type_of_current_user==consts.CLUB_OWNER:
-            if (membership.type=="officer"):
-                membership.type = "member"
-                membership.save()
-                messages.add_message(request, messages.SUCCESS, "User successfully demoted to member")
-
-            return redirect("user_list")
-        else:
-            messages.add_message(request, messages.ERROR, "You are not are not allowed to deomote users")
-            return redirect("user_list")
+    return promote_demote_helper.help_demote(request=request,user_id=user_id)
 
 @login_required
 def transfer_ownership(request, user_id):
-    try:
-        user = User.objects.get(pk=user_id)
-        club = request.session['club_choice']
-        membership = MembershipType.objects.get(user=user, club = club)
-
-    except ObjectDoesNotExist:
-        messages.add_message(request, messages.ERROR, "Invalid user")
-        return redirect("user_list")
-    else:
-        current_user = request.user
-
-        owner_membership = MembershipType.objects.get(user=current_user, club = club)
-        owner_membership_type = current_user.get_membership_type_in_club(club = club)
-        if owner_membership_type==consts.CLUB_OWNER:
-            if (membership.type=="officer"):
-                owner_membership.type = "officer"
-                owner_membership.save()
-                membership.type = "club_owner"
-                membership.save()
-                user_club = Club.objects.get(pk = club)
-                user_club.club_owner = user
-                user_club.save()
-                messages.add_message(request, messages.SUCCESS, "Ownership successfully transferred")
-            else:
-                messages.add_message(request, messages.ERROR, "You are only allowed to transfer the ownership to an officer")
-                return redirect("user_list")
-
-            return redirect("user_list")
-        else:
-            messages.add_message(request, messages.ERROR, "You are not are not allowed to transfer ownership")
-            return redirect("user_list")
+    return promote_demote_helper.help_tansfer_ownership(request=request,user_id=user_id)
 
 @login_required
 def password(request):
-    current_user = request.user
     if request.method == 'POST':
         form = PasswordForm(data=request.POST)
         if form.is_valid():
-            password = form.cleaned_data.get('password')
-            if check_password(password, current_user.password):
-                new_password = form.cleaned_data.get('new_password')
-                current_user.set_password(new_password)
-                current_user.save()
-                login(request, current_user)
-                messages.add_message(request, messages.SUCCESS, "Password updated!")
-                return redirect('test')
-        messages.add_message(request, messages.ERROR, "The credentials provided were invalid!")
+            form.process_valid_data(request=request)
+        else:
+            messages.add_message(request, messages.ERROR, "The credentials provided were invalid!")
     form = PasswordForm()
     return render(request, 'password.html', {'form': form})
 
@@ -225,7 +167,6 @@ def user_list(request):
         type = current_user.get_membership_type_in_club(current_user_club_name)
         return render(request, 'user_list.html', {'users': users, "type": type})
 
-
 @login_required
 def club_list(request):
     clubs = Club.objects.all()
@@ -233,37 +174,30 @@ def club_list(request):
     existing_clubs_of_user = current_user.get_clubs()
     return render(request, 'club_list.html', {'clubs': clubs, 'existing_clubs':existing_clubs_of_user})
 
-
 @login_required
 def apply_to_club(request, club_name):
-    user_club_choice = Club.objects.get(pk = club_name)
-    print(user_club_choice)
-    print(request.user)
-    # Make user an applicant of this club
-    MembershipType.objects.create(user = request.user, club = user_club_choice, type = consts.APPLICANT)
-    succes_string = 'You have successfully applied to' + club_name
-    messages.add_message(request, messages.SUCCESS, succes_string)
+    success_string = create_applicant_membership_to_clubs.create_applicant_of_club(request=request, club_name=club_name)
+    messages.add_message(request, messages.SUCCESS, success_string)
     return club_list(request = request)
 
+class CreateNewClubView(LoginRequiredMixin,CreateView):
+    model = Club
+    template_name = 'create_club.html'
+    form_class = CreateNewClubForm
+    http_method_names = ['post', 'get']
 
-@login_required
-def create_new_club(request):
-    if request.method == 'POST':
-        form = CreateNewClubForm(request.POST)
-        if form.is_valid():
-            club = form.save(commit=False)
-            club.club_owner = request.user
-            club.save()
-            form.save()
-            # Create the new membership type.
-            # The membership is being manually created because the club models' save method is called instead of create
-            # which does not automatically create the new membership.
-            MembershipType.objects.create(user = request.user, club = club, type = consts.CLUB_OWNER)
-            messages.add_message(request, messages.SUCCESS, "You have created a new club!")
-            return redirect('club_list')
-    else:
-        form = CreateNewClubForm()
-    return render(request, 'create_club.html', {'form': form})
+    def form_valid(self, form):
+        """Process a valid form."""
+        form.process_valid_form(user = self.request.user)
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        """Return URL to redirect the user too after valid form handling."""
+        return reverse('club_list')
+
+    def handle_no_permission(self):
+        return redirect('test')
 
 @login_required
 def show_tournaments(request):
@@ -279,29 +213,32 @@ def show_tournaments(request):
         type = current_user.get_membership_type_in_club(current_user_club_name)
         return render(request, 'tournament_list.html', {'tournaments': tournaments, "type": type,})
 
-@login_required
-def create_new_tournament(request):
-    current_user_club = Club.objects.get(pk = request.session['club_choice'])
-    if request.method == 'POST':
-        form = CreateNewTournamentForm(request.POST)
-        if form.is_valid():
-            Tournament = form.save(commit=False)
-            Tournament.organising_officer = request.user
-            Tournament.club = current_user_club
-            capacity = form.cleaned_data.get('capacity')
-            Tournament.capacity = capacity
-            Tournament.save()
-            form.save()
-            return redirect('tournaments')
 
-    else:
-        form = CreateNewTournamentForm()
-    return render(request, 'create_tournament.html', {'form':form})
+class CreateNewTournamentView(LoginRequiredMixin,CreateView):
+    model = Tournament
+    template_name = 'create_tournament.html'
+    form_class = CreateNewTournamentForm
+    http_method_names = ['post', 'get']
 
+    def form_valid(self, form):
+        """Process a valid form."""
+        organising_officer = self.request.user
+        current_user_club = Club.objects.get(pk = self.request.session['club_choice'])
+        form.process_form_with_organiser_data(current_user_club = current_user_club, organising_officer = organising_officer)
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        """Return URL to redirect the user too after valid form handling."""
+        return reverse('tournaments')
+
+    def handle_no_permission(self):
+        return redirect('test')
 
 @login_required
 def participate_in_tournament(request,tournament_id):
     current_user = request.user
+
     tournament = Tournament.objects.get(id = tournament_id)
     tournament_deadline = tournament.deadline_to_apply
     tournament_capacity = tournament.capacity
@@ -315,6 +252,9 @@ def participate_in_tournament(request,tournament_id):
         tournament.participating_players.add(User.objects.get(email = request.user.email))
         tournament_name = tournament.name
         messages.add_message(request, messages.SUCCESS, "You have successfully joined the tournament: " + tournament_name)
+#     success_string = apply_tournament.apply_for_tournament(request=request,tournament_id=tournament_id)
+#     messages.add_message(request, messages.SUCCESS, success_string)
+#     return render(request, 'tournament_list.html', {"current_user":current_user,})
     return redirect("tournaments")
 
 @login_required

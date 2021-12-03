@@ -19,12 +19,12 @@ from clubs import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('',views.home, name = 'home'),
-    path('sign_up/', views.sign_up, name='sign_up'),
-    path('log_in/', views.log_in, name='log_in'),
-    path('test/', views.test, name='test'),
+    path('',views.HomeView.as_view(), name = 'home'),
+    path('sign_up/', views.SignUpView.as_view(), name='sign_up'),
+    path('log_in/', views.LogInView.as_view(), name='log_in'),
+    path('test/', views.TestView.as_view(), name='test'),
     path('log_out/', views.log_out, name='log_out'),
-    path('profile/', views.profile, name='profile'),
+    path('profile/', views.ProfileUpdateView.as_view(), name='profile'),
     path('password/', views.password, name='password'),
     path('users/', views.user_list, name='user_list'),
     path('clubs/', views.club_list, name='club_list'),
@@ -32,10 +32,10 @@ urlpatterns = [
     path('promote/<int:user_id>/', views.promote, name='promote'),
     path('apply_to_club/<str:club_name>/', views.apply_to_club, name='apply_to_club'),
     path('demote/<int:user_id>/', views.demote, name='demote'),
-    path('create_new_club/', views.create_new_club, name='create_new_club'),
+    path('create_new_club/', views.CreateNewClubView.as_view(), name='create_new_club'),
     path('transfer_ownership/<int:user_id>/', views.transfer_ownership, name='transfer_ownership'),
     path('tournaments/', views.show_tournaments, name='tournaments'),
-    path('create_new_tournament/', views.create_new_tournament, name='create_tournament'),
-    path('participate_in_tournament/<int:tournament_id>/', views.participate_in_tournament, name='participate_in_tournament'),
     path('withdraw_from_tournament/<int:tournament_id>/', views.withdraw_from_tournament, name='withdraw_from_tournament')
+    path('create_new_tournament/', views.CreateNewTournamentView.as_view(), name='create_tournament'),
+    path('participate_in_tournament/<int:tournament_id>/', views.participate_in_tournament, name='participate_in_tournament')
 ]
