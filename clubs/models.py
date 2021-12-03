@@ -155,13 +155,13 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def get_membership_type_in_club(self, club):
         club = Club.objects.get(pk = club)
-        
+
         try:
             memberType = MembershipType.objects.filter(user=self,club = club)
             return memberType[0].type
         except MembershipType.DoesNotExist:
             return None
-            
+
 
     def get_clubs(self):
         """Returns a list of clubs that the user is in"""
@@ -226,16 +226,16 @@ class Club(models.Model):
             users_membership_type[membership.user] = membership.type
 
         return users_membership_type
-    
+
     def get_number_of_members(self):
         """ Returns the number of members in the club"""
 
         memberships = MembershipType.objects.filter(club = self)
 
         return len(memberships)
-        
+
     objects = ClubModelManager()
-    
+
 
 
 class MembershipType(models.Model):
@@ -279,8 +279,8 @@ class Tournament(models.Model):
         for co_organising_officer in tournament.co_organising_officers.all():
             if co_organising_officer.get_membership_type_in_club(self.club.name) != consts.OFFICER:
                 raise ValidationError('The co orginising officers must be an officer.')
-    
-    
+
+
 
     def get_associated_members(self):
         """ Returns all associated players and organizers of the tournament."""
@@ -293,7 +293,7 @@ class Tournament(models.Model):
 
         for player in tournament.participating_players.all():
             associated_member_list.append(player)
-        
+
         # Adding the organising officer
 
         associated_member_list.append(self.organising_officer)
@@ -306,7 +306,7 @@ class Tournament(models.Model):
 
     def get_number_of_participating_players(self):
 
-        tournament = Tournament.objects.filter(pk = self.id)
+        tournament = Tournament.objects.get(pk = self.id)
 
         return tournament.participating_players.all().count()
 

@@ -112,4 +112,4 @@ class PromoteViewTestCase(TestCase):
 
         messages_list = list(response.context["messages"])
         self.assertEqual(len(messages_list), 1)
-        self.assertEqual(messages_list[0].level, messages.INFO)
+        self.assertEqual(messages_list[0].level, messages.SUCCESS)
