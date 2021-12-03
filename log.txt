@@ -1,0 +1,320 @@
+commit 707679eaa0dbaf271b4c603f471c2ad4244b6546
+Author: Shmeelok Chakraborty <shmeelok.chakraborty@kcl.ac.uk>
+Date:   Thu Nov 25 12:19:06 2021 +0000
+
+    Edit Login Experience
+    
+    - If a user is already logged in and visits the home page, the user is automatically redirected to their profile page.
+
+commit 22b0e576455d801bcf19a2df2f82991647c78dae
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Thu Nov 25 12:02:35 2021 +0000
+
+    Add column titles to user list
+
+commit d2235c9b05410f04299bf79c80dce0b31923f641
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Thu Nov 25 12:02:06 2021 +0000
+
+    Add column titles to user list
+
+commit 258d007bc990cbdb3d4a4b885659e17206907975
+Merge: eca43bf fff07f5
+Author: Xufeng Bai <xufeng.bai@kcl.ac.uk>
+Date:   Wed Nov 24 22:15:05 2021 +0200
+
+    Merge branch 'master' of github.com:AviBen96/chess_club_management_system
+    Merging the club owner functionalities with the mastere branch.
+
+commit eca43bf09c2ac6c72eea5556ae03b60bbe048f35
+Author: Xufeng Bai <xufeng.bai@kcl.ac.uk>
+Date:   Wed Nov 24 22:13:15 2021 +0200
+
+    Add promoting and transfering functionalities.
+
+commit fff07f545b5bafca36846d5b0464255bc11f1597
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Wed Nov 24 20:10:59 2021 +0000
+
+    Fix sign_up form styling
+
+commit c062289d32a9cf48d5b6e77779f2f7abc12a334d
+Author: Shmeelok Chakraborty <shmeelok.chakraborty@kcl.ac.uk>
+Date:   Wed Nov 24 12:19:44 2021 +0000
+
+    Add close button to promote info
+
+commit ca5fbe50ea219e97f8bd2a237ea40854bb1e74ae
+Author: Shmeelok Chakraborty <shmeelok.chakraborty@kcl.ac.uk>
+Date:   Wed Nov 24 11:09:29 2021 +0000
+
+    Create profile details page
+
+commit 1be7a27c11065a109d3343e7c6e527554747b978
+Author: Adnan Salah <adnan.salah@kcl.ac.uk>
+Date:   Tue Nov 23 18:33:57 2021 +0000
+
+    change 'promote to member' hyperlin to button
+
+commit 3a6b3b357cddc27a29750028d1681c7053c48528
+Author: Adnan Salah <adnan.salah@kcl.ac.uk>
+Date:   Tue Nov 23 18:16:18 2021 +0000
+
+    Allow Officers and above to promote applicants to members
+    
+    -Add new url path to promote applicants
+    -Add to the users view a hyperlink new to applicants that is only shown to officers and club owners
+    -Add Test cases for the promote view
+
+commit e4627d7df79698378ee30571140a818e7747ac9b
+Author: Adnan Salah <adnan.salah@kcl.ac.uk>
+Date:   Tue Nov 23 16:47:51 2021 +0000
+
+    add tests to usre_list_view to check type is passed correctly
+
+commit d0bcd5fa30753c903ce4b2c52dc22b723e727476
+Author: Adnan Salah <adnan.salah@kcl.ac.uk>
+Date:   Tue Nov 23 16:10:05 2021 +0000
+
+    Allow users of type officer or above to view more information about users in users page
+    
+    - Add a get_type() method inside the user Model to get the type easier
+    - Changed the user_list view to allow a different page to load when the user is an officer or club owner
+
+commit ab55f9d8754350afb2ac14a10e90cbdba3bd2566
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Mon Nov 22 22:31:03 2021 +0000
+
+    Make home view fit screen
+
+commit 5ce8d155bd1b045945211a7e7d0f8b199707907d
+Author: Shmeelok Chakraborty <shmeelok.chakraborty@kcl.ac.uk>
+Date:   Sat Nov 20 16:56:46 2021 +0000
+
+    Fix a migration issue
+
+commit 8f4f179d4e248e11d2cb03a4fc80c3fa6935c00e
+Author: Shmeelok Chakraborty <shmeelok.chakraborty@kcl.ac.uk>
+Date:   Sat Nov 20 16:47:44 2021 +0000
+
+    Refine models and alter model constraints
+    
+    - Alter Membership type model such that only valid keywords are taken in the type field
+    - Alter Membership type model such that only one club owner exists
+    - Write tests for the above alterations
+
+commit 4e3e02722c97c398609c3caef273114d233bf692
+Author: Shmeelok Chakraborty <shmeelok.chakraborty@kcl.ac.uk>
+Date:   Sat Nov 20 06:23:59 2021 +0000
+
+    Improve Sign Up Experience
+    
+    - Login User after sign up
+    - Redirect User to the applicant page
+    - Test the automatic login after sign up feature
+
+commit 5a7ccd54008cb0c1ac87f511f55eabd952f12c23
+Author: Adnan Salah <adnan.salah@kcl.ac.uk>
+Date:   Fri Nov 19 14:53:12 2021 +0000
+
+    Add configurations to view users and memberships in admin interface
+
+commit 63b57b41b124341139dfae1dcd6bf2930e2f6773
+Author: Adnan Salah <adnan.salah@kcl.ac.uk>
+Date:   Fri Nov 19 14:39:03 2021 +0000
+
+    Fix creating super user
+
+commit 46e19c96d4fcb7d9e8f146758290ff3940d17227
+Author: Xufeng Bai <xufeng.bai@kcl.ac.uk>
+Date:   Fri Nov 19 13:56:54 2021 +0200
+
+    Add user lists in the menu.
+
+commit 25b3f68a85ce6091648b974ecf2f6f002664dbf5
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Thu Nov 18 23:35:27 2021 +0000
+
+    Implement login,logout,edit profile,edit password functionalities
+
+commit bd277f006ab4fa1625737d7f9aafe29b3985243d
+Merge: c56e64a c97c9ba
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Thu Nov 18 17:00:07 2021 +0000
+
+    Create log_in view and form
+
+commit c56e64ad9ceb7dfe8ae58c8edc495aac537cfb58
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Thu Nov 18 15:43:49 2021 +0000
+
+    Add to FrontEnd for homeView
+
+commit c97c9ba7313d4e63065dfd2b9098860579edd2c1
+Author: Shmeelok Chakraborty <shmeelok.chakraborty@kcl.ac.uk>
+Date:   Thu Nov 18 15:18:51 2021 +0000
+
+    Fix Sign up view and Tests for Sign up view
+
+commit d9b24ac93cbcfd5cc004b527df0c90ac48b4ae20
+Author: Shmeelok Chakraborty <shmeelok.chakraborty@kcl.ac.uk>
+Date:   Thu Nov 18 11:46:53 2021 +0000
+
+    Add Save Functionality of Sign-up
+    - Modify the save method of sign up form
+    - Test to check whether an applicant is created after sign up
+
+commit 8a8d4b469b280937cc7cdacc3dfac3bf71fbbc89
+Author: Avner Bensoussan <k20013502@kcl.ac.uk>
+Date:   Wed Nov 17 20:37:30 2021 +0100
+
+    Implement the sign-up form.
+    
+    -Create a form for sign-up
+    -Add tests for sign-up form and view
+    -Refactor the templates to partials ans base
+    -Reorganize the tests in folders
+
+commit 03eb4d40e919c3f188426aac6b28ada82621ba5e
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Tue Nov 16 09:21:00 2021 +0000
+
+    Fix No module named 'gravatar' error
+
+commit 0161773945a9085d41e1eb8f4eb7c34702bbf3d3
+Author: Shmeelok Chakraborty <shmeelok.chakraborty@kcl.ac.uk>
+Date:   Mon Nov 15 18:49:06 2021 +0000
+
+    Make models and Tests
+    
+    - Make User model extending AbstractBaseUser and PermissionsMixin
+    - Make a custom BaseUserManager
+    - Make membership type model
+    - Create tests for User model
+    - Create tests for membership type model
+
+commit ffd5b6c626d374d6d44c696ff1197c24992758f2
+Author: Adnan Salah <adnan.salah@kcl.ac.uk>
+Date:   Mon Nov 15 12:34:18 2021 +0000
+
+    Change branch name on django.yml to 'master' for automated testing
+
+commit 05574c391027ea44136fcae651191002fbea8b7c
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Sun Nov 14 20:03:26 2021 +0000
+
+    Fix filler text typos
+
+commit 76ac9574b76bb932e57799d289f65e86b3ae5bbc
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Sun Nov 14 19:58:11 2021 +0000
+
+    Refine icon choices
+
+commit cae4fbfc5bafd2b92131bb5bae908990313941ee
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Sun Nov 14 19:49:17 2021 +0000
+
+    Test
+
+commit b3eba3ba2ed739b566a1755a4c18422a89ff9660
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Sun Nov 14 19:42:50 2021 +0000
+
+    Add filler text to home view
+
+commit 719d019583f9b3e004ae6aac03a6464369a29d0e
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Sun Nov 14 18:52:06 2021 +0000
+
+    Add image background to home view
+
+commit a25502290c78fcdf195eac8a0d7b8caa35ecb6ff
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Sun Nov 14 16:03:39 2021 +0000
+
+    Add navbar to home page - needs some refining
+
+commit 63d718abd991ed1c0550ecf93960ac7899704332
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Sun Nov 14 14:20:00 2021 +0000
+
+    Add placeholder template
+
+commit bdf00a2d97e91a2536a50946acf5553689fc78f6
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Sun Nov 14 11:06:05 2021 +0000
+
+    Add everyones ID to README
+
+commit 402fae7f5d12319f1afed371f740cc6bfd851539
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Sat Nov 13 21:06:27 2021 +0000
+
+    Change default README to tailor to group
+
+commit 88d9ff05d521b9b282e2ffbfdd6d792cb583a0ce
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Sat Nov 13 21:05:35 2021 +0000
+
+    Change default README to tailor to group
+
+commit b699581fcb6c2cb083784d82b022052d91f5df01
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Sat Nov 13 14:34:32 2021 +0000
+
+    Add README
+
+commit 1aeda933cc1c93fbf3cc49a434ace66933634cab
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Sat Nov 13 14:32:14 2021 +0000
+
+    Add seed and unseed files and folders
+
+commit 53577e81daa5c9a812f62f2115a715a4a56da48b
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Sat Nov 13 14:21:45 2021 +0000
+
+    Add System and clubs directories
+
+commit ac49ad354689d19accbc9f56f6077a5541e49373
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Sat Nov 13 14:11:02 2021 +0000
+
+    Create basic project structure for project
+
+commit d71191a902a96e853c504b1f877207de351e2f4d
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Sat Nov 13 13:55:33 2021 +0000
+
+    Change project structue to copy keppens
+
+commit 5386a267ce43deb33f8f8f7b54917f9b6f58e12b
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Sat Nov 13 13:39:43 2021 +0000
+
+    Add django.yml
+
+commit f39c6c479172e856613912e3cb05ddabf959143c
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Sat Nov 13 13:36:39 2021 +0000
+
+    Test
+
+commit b74cf01b6ddc9bdd24bdac2bc7c17130f3539845
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Thu Nov 11 17:54:05 2021 +0000
+
+    Add .coveragerc file
+
+commit 367d6511bf0c5864948cf8046e04a9c2665fbe68
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Thu Nov 11 17:34:59 2021 +0000
+
+    Add requirements.txt file
+
+commit 0e6269766f22561711532c49f31e3ea0b23b1686
+Author: Rahin Ashraf <rahin.ashraf@kcl.ac.uk>
+Date:   Thu Nov 11 17:31:05 2021 +0000
+
+    Create django application

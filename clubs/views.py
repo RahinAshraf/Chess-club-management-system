@@ -15,6 +15,7 @@ from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.views.generic.edit import FormView
 from django.urls import reverse
 from .Constants import consts
+from django.utils import timezone
 from .Utilities import promote_demote_helper,create_applicant_membership_to_clubs,apply_tournament,switch_user_club
 def get_club_choice(request):
     """Utility function to return the club name the user has selected."""
@@ -201,7 +202,7 @@ class CreateNewClubView(LoginRequiredMixin,CreateView):
 @login_required
 def show_tournaments(request):
     current_user = request.user
-    
+
     try:
         current_user_club_name = request.session['club_choice']
         current_user_club = Club.objects.get(pk = request.session['club_choice'])
@@ -211,6 +212,7 @@ def show_tournaments(request):
         tournaments = Tournament.objects.filter(club = current_user_club)
         type = current_user.get_membership_type_in_club(current_user_club_name)
         return render(request, 'tournament_list.html', {'tournaments': tournaments, "type": type,})
+
 
 class CreateNewTournamentView(LoginRequiredMixin,CreateView):
     model = Tournament
@@ -236,6 +238,35 @@ class CreateNewTournamentView(LoginRequiredMixin,CreateView):
 @login_required
 def participate_in_tournament(request,tournament_id):
     current_user = request.user
-    success_string = apply_tournament.apply_for_tournament(request=request,tournament_id=tournament_id)
-    messages.add_message(request, messages.SUCCESS, success_string)
-    return render(request, 'tournament_list.html', {"current_user":current_user,})
+
+    tournament = Tournament.objects.get(id = tournament_id)
+    tournament_deadline = tournament.deadline_to_apply
+    tournament_capacity = tournament.capacity
+    current_number_of_players = tournament.get_number_of_participating_players()
+    current_time = timezone.now()
+    if current_number_of_players+1 > tournament_capacity:
+        messages.add_message(request, messages.ERROR, "The tournament is full, try join some other tournaments.")
+    elif current_time > tournament_deadline:
+        messages.add_message(request, messages.ERROR, "It is now too late to join the tournament.")
+    else:
+        tournament.participating_players.add(User.objects.get(email = request.user.email))
+        tournament_name = tournament.name
+        messages.add_message(request, messages.SUCCESS, "You have successfully joined the tournament: " + tournament_name)
+#     success_string = apply_tournament.apply_for_tournament(request=request,tournament_id=tournament_id)
+#     messages.add_message(request, messages.SUCCESS, success_string)
+#     return render(request, 'tournament_list.html', {"current_user":current_user,})
+    return redirect("tournaments")
+
+@login_required
+def withdraw_from_tournament(request,tournament_id):
+    current_user = request.user
+    tournament = Tournament.objects.get(id = tournament_id)
+    tournament_deadline = tournament.deadline_to_apply
+    current_time = timezone.now()
+    if current_time > tournament_deadline:
+        messages.add_message(request, messages.ERROR, "You can not withdraw from the tournament, it's too late!")
+    else:
+        tournament.participating_players.remove(User.objects.get(email = request.user.email))
+        tournament_name = tournament.name
+        messages.add_message(request, messages.SUCCESS, "You have successfully withdraw from the tournament: " + tournament_name)
+    return redirect("tournaments")
