@@ -1,3 +1,4 @@
+from django.contrib.messages.api import success
 from django.shortcuts import redirect, render
 from .forms import CreateNewTournamentForm, SignUpForm
 from django.contrib.auth import login, logout
@@ -14,7 +15,7 @@ from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.views.generic.edit import FormView
 from django.urls import reverse
 from .Constants import consts
-from .Utilities import promote_demote_helper
+from .Utilities import promote_demote_helper,create_applicant_membership_to_clubs,apply_tournament,switch_user_club
 def get_club_choice(request):
     """Utility function to return the club name the user has selected."""
     return request.session['club_choice']
@@ -110,21 +111,7 @@ def edit_details(request):
 
 @login_required
 def switch_club(request):
-    """Whenever the user chooses a club from the drop down in the navbar,
-    the club object is saved in request.session['club_choice']
-    and the user is redirected back to the same page.
-    If the previous page doesn't exist, user is redirected to the test page"""
-
-    previous_url = request.META.get('HTTP_REFERER')
-
-    club = request.GET.get('club_choice', False)
-    if club!=False:
-        request.session['club_choice'] = club
-
-    if previous_url:
-        return redirect(previous_url)
-    else:
-        return redirect('test')
+    return switch_user_club.help_switch_club(request=request)
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     """View to update logged-in user's profile."""
@@ -143,98 +130,17 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         messages.add_message(self.request, messages.SUCCESS, "Profile updated!")
         return reverse('test')
 
-def get_promote_and_demote_subject_user_with_club(request, user_id):
-    """This function returns a dictionary of the subject user along with
-        the current selection of club in the session and the membership object.
-        It raises an exception with the membership object is not found."""
-    try:
-        user = User.objects.get(pk=user_id)
-        user_club = get_club_choice(request=request)
-        if user_club:
-            membership = MembershipType.objects.get(user=user, club = user_club)
-        else:
-            membership = None
-        return {'membership':membership,'subject_user':user,'user_club':user_club}
-    except ObjectDoesNotExist:
-        raise ObjectDoesNotExist
-
 @login_required
 def promote(request, user_id):
-    """user_id: the primary key of the user being promoted to 'member'
-    Officers and Club Owners are able to promote specific applicants to members"""
-    try:
-        subject_user_details = get_promote_and_demote_subject_user_with_club(request, user_id)
-        user_club = subject_user_details['user_club']
-        membership = subject_user_details['membership']
-
-    except ObjectDoesNotExist:
-        messages.add_message(request, messages.ERROR, "Invalid user to promote")
-        return redirect("user_list")
-    else:
-        current_user = request.user
-        membership_type_of_current_user = current_user.get_membership_type_in_club(user_club)
-        if membership_type_of_current_user==consts.OFFICER or membership_type_of_current_user==consts.CLUB_OWNER:
-            new_type = promote_demote_helper.promote_user[membership.type]
-            membership.type = new_type
-            membership.save()
-            message_string = "User has been successfully promoted to" + new_type
-            messages.add_message(request,messages.SUCCESS, message_string)
-        else:
-            messages.add_message(request, messages.ERROR, "You are not are not allowed to promote users")
-        return redirect("user_list")
+    return promote_demote_helper.help_promote(request=request,user_id=user_id)
 
 @login_required
 def demote(request, user_id):
-    try:
-        subject_user_details = get_promote_and_demote_subject_user_with_club(request, user_id)
-        user_club = subject_user_details['user_club']
-        membership = subject_user_details['membership']
-    except ObjectDoesNotExist:
-        messages.add_message(request, messages.ERROR, "Invalid user")
-        return redirect("user_list")
-    else:
-        current_user = request.user
-        membership_type_of_current_user = current_user.get_membership_type_in_club(user_club)
-        if membership_type_of_current_user==consts.CLUB_OWNER:
-            new_type = promote_demote_helper.demote_user[membership.type]
-            membership.type = new_type
-            membership.save()
-            message_string = "User has been successfully demoted to" + new_type
-            messages.add_message(request,messages.SUCCESS, message_string)
-        else:
-            messages.add_message(request, messages.ERROR, "You are not are not allowed to deomote users")
-        return redirect("user_list")
+    return promote_demote_helper.help_demote(request=request,user_id=user_id)
 
 @login_required
 def transfer_ownership(request, user_id):
-    try:
-        subject_user_details = get_promote_and_demote_subject_user_with_club(request, user_id)
-        user_club = subject_user_details['user_club']
-        membership = subject_user_details['membership']
-        user = subject_user_details['subject_user']
-    except ObjectDoesNotExist:
-        messages.add_message(request, messages.ERROR, "Invalid user")
-        return redirect("user_list")
-    else:
-        current_user = request.user
-        owner_membership = MembershipType.objects.get(user=current_user, club = user_club)
-        if owner_membership.type==consts.CLUB_OWNER:
-            if (membership.type=="officer"):
-                new_type = promote_demote_helper.demote_user[owner_membership.type]
-                owner_membership.type = new_type 
-                owner_membership.save()
-                membership.type = promote_demote_helper.promote_user[membership.type]
-                membership.save()
-                # Modifying the club owner of the Club model
-                club = Club.objects.get(pk = user_club)
-                club.club_owner = user
-                club.save()
-                messages.add_message(request, messages.SUCCESS, "Ownership successfully transferred")
-            else:
-                messages.add_message(request, messages.ERROR, "You are only allowed to transfer the ownership to an officer")
-        else:
-            messages.add_message(request, messages.ERROR, "You are not are not allowed to transfer ownership")
-        return redirect("user_list")
+    return promote_demote_helper.help_tansfer_ownership(request=request,user_id=user_id)
 
 @login_required
 def password(request):
@@ -269,11 +175,8 @@ def club_list(request):
 
 @login_required
 def apply_to_club(request, club_name):
-    user_club_choice = Club.objects.get(pk = club_name)
-    # Make user an applicant of this club
-    MembershipType.objects.create(user = request.user, club = user_club_choice, type = consts.APPLICANT)
-    succes_string = 'You have successfully applied to' + club_name
-    messages.add_message(request, messages.SUCCESS, succes_string)
+    success_string = create_applicant_membership_to_clubs.create_applicant_of_club(request=request, club_name=club_name)
+    messages.add_message(request, messages.SUCCESS, success_string)
     return club_list(request = request)
 
 class CreateNewClubView(LoginRequiredMixin,CreateView):
@@ -333,8 +236,6 @@ class CreateNewTournamentView(LoginRequiredMixin,CreateView):
 @login_required
 def participate_in_tournament(request,tournament_id):
     current_user = request.user
-    tournament = Tournament.objects.get(id = tournament_id)
-    tournament.participating_players.add(User.objects.get(email = request.user.email))
-    tournament_name = tournament.name
-    messages.add_message(request, messages.SUCCESS, "You have successfully joined the tournament: " + tournament_name)
+    success_string = apply_tournament.apply_for_tournament(request=request,tournament_id=tournament_id)
+    messages.add_message(request, messages.SUCCESS, success_string)
     return render(request, 'tournament_list.html', {"current_user":current_user,})
