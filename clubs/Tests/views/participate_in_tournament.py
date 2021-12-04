@@ -4,7 +4,6 @@ from django.core.exceptions import ValidationError
 from django.urls import reverse
 from ...Constants import consts
 from django.contrib import messages
-#from django.contrib.auth import login, logout
 
 class ParticipateInTournament(TestCase):
 
