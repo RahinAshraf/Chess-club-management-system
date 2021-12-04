@@ -145,6 +145,10 @@ def transfer_ownership(request, user_id):
     return promote_demote_helper.help_tansfer_ownership(request=request,user_id=user_id)
 
 @login_required
+def assign_coorganiser(request, tournament_id, user_id):
+    return promote_demote_helper.help_assign_organiser(request=request,user_id=user_id,tournament_id=tournament_id)
+
+@login_required
 def password(request):
     if request.method == 'POST':
         form = PasswordForm(data=request.POST)
@@ -167,6 +171,20 @@ def user_list(request):
         users = current_user_club.get_all_users_with_types()
         type = current_user.get_membership_type_in_club(current_user_club_name)
         return render(request, 'user_list.html', {'users': users, "type": type})
+
+@login_required
+def officer_list(request, tournament_id):
+    current_user = request.user
+    tournament = Tournament.objects.get(id=tournament_id)
+    try:
+        current_user_club_name = request.session['club_choice']
+        current_user_club = Club.objects.get(pk = request.session['club_choice'])
+    except:
+        return redirect('test')
+    else:
+        users = current_user_club.get_all_officers_with_types(current_user)
+        type = current_user.get_membership_type_in_club(current_user_club_name)
+        return render(request, 'officer_list.html', {'users': users, "type": type, "tournament": tournament})
 
 @login_required
 def club_list(request):

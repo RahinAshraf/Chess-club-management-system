@@ -1,0 +1,29 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <h1>Officers</h1>
+      <table class="table">
+        <tr>
+            <td><b>Gravatar</b></td>
+            <td><b>Full Name</b></td>
+            <td><b>Email</b></td>
+            <td><b>Membership type</b></td>
+        </tr>
+        {% for user, user_type in users.items %}
+          <tr>
+            <td>
+              <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.username }}" class="rounded-circle" >
+            </td>
+            <td>{{ user.full_name }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user_type }}</td>
+            <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'assign_coorganiser' tournament.id user.id %}" role="button">Assign as co-organiser</a></td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

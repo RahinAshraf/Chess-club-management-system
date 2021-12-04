@@ -34,12 +34,12 @@
           <td>{{tournament.description}}</td>
           <td>{{tournament.deadline_to_apply}}</td>
             {% if request.user == tournament.organising_officer  %}
-            <!-- do not show the join_tournament button -->
+              <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'officer_list' tournament.id %}" role="button" id="officer_list">Assign co-organisers</a></td>
             {% else %}
               {% if request.user|officer:tournament.id %}
-            <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'withdraw_from_tournament' tournament.id %}" role="button" id="withdraw">Withdraw</a></td>
+                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'withdraw_from_tournament' tournament.id %}" role="button" id="withdraw">Withdraw</a></td>
               {% else%}
-            <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'participate_in_tournament' tournament.id %}" role="button" id="join_tournament">Join tournament</a></td>
+                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'participate_in_tournament' tournament.id %}" role="button" id="join_tournament">Join tournament</a></td>
               {% endif %}
             {% endif %}
           </tr>

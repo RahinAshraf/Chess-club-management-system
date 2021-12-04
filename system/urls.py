@@ -28,6 +28,7 @@ urlpatterns = [
     path('password/', views.password, name='password'),
     path('users/', views.user_list, name='user_list'),
     path('clubs/', views.club_list, name='club_list'),
+    path('officer_list/<int:tournament_id>/', views.officer_list, name='officer_list'),
     path('switch_club/', views.switch_club, name='switch_club'),
     path('promote/<int:user_id>/', views.promote, name='promote'),
     path('apply_to_club/<str:club_name>/', views.apply_to_club, name='apply_to_club'),
@@ -37,5 +38,6 @@ urlpatterns = [
     path('tournaments/', views.show_tournaments, name='tournaments'),
     path('withdraw_from_tournament/<int:tournament_id>/', views.withdraw_from_tournament, name='withdraw_from_tournament'),
     path('create_new_tournament/', views.CreateNewTournamentView.as_view(), name='create_tournament'),
-    path('participate_in_tournament/<int:tournament_id>/', views.participate_in_tournament, name='participate_in_tournament')
+    path('participate_in_tournament/<int:tournament_id>/', views.participate_in_tournament, name='participate_in_tournament'),
+    path('assign_coorganiser/<int:tournament_id>/<int:user_id>/', views.assign_coorganiser, name='assign_coorganiser')
 ]

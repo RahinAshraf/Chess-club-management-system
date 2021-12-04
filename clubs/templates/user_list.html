@@ -60,7 +60,6 @@
                 <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' user.id %}" role="button">promote to officer</a></td>
               {% elif user_type == 'officer' %}
               <td>
-
                 <div class="dropdown">
                   <a class="nav-link" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <button href="#" class="btn btn-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -72,9 +71,7 @@
                     <li><a class="dropdown-item" href="{% url 'transfer_ownership' user.id %}">Transfer club ownership</a></li>
                   </ul>
                 </div>
-
               </td>
-
               {% endif %}
             {% endif %}
           </tr>

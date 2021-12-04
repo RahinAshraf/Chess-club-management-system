@@ -216,6 +216,16 @@ class Club(models.Model):
 
         return users
 
+    def get_all_officers_with_types(self, user):
+        """Return a list of officers with their type in club exclude the given user"""
+        memberships = MembershipType.objects.filter(club=self, type='officer').exclude(user=user)
+
+        users_membership_type = {}
+        for membership in memberships:
+            users_membership_type[membership.user] = membership.type
+
+        return users_membership_type
+
     def get_all_users_with_types(self):
         """Returns a list of the users with their types in this club"""
 
@@ -279,8 +289,6 @@ class Tournament(models.Model):
         for co_organising_officer in tournament.co_organising_officers.all():
             if co_organising_officer.get_membership_type_in_club(self.club.name) != consts.OFFICER:
                 raise ValidationError('The co orginising officers must be an officer.')
-
-
 
     def get_associated_members(self):
         """ Returns all associated players and organizers of the tournament."""
