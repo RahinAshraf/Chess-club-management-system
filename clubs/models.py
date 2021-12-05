@@ -312,6 +312,10 @@ class Tournament(models.Model):
 
         return associated_member_list
 
+    def get_number_of_co_organisers(self):
+        tournament = Tournament.objects.get(pk = self.id)
+        return tournament.co_organising_officers.all().count()
+
     def get_number_of_participating_players(self):
 
         tournament = Tournament.objects.get(pk = self.id)
