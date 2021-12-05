@@ -16,7 +16,7 @@ from django.views.generic.edit import FormView
 from django.urls import reverse
 from .Constants import consts
 from django.utils import timezone
-from .Utilities import promote_demote_helper,create_applicant_membership_to_clubs,apply_tournament,switch_user_club,withdraw_tournament
+from .Utilities import promote_demote_helper,create_applicant_membership_to_clubs,apply_tournament,switch_user_club,withdraw_tournament,assign_organiser
 
 def get_club_choice(request):
     """Utility function to return the club name the user has selected."""
@@ -146,7 +146,7 @@ def transfer_ownership(request, user_id):
 
 @login_required
 def assign_coorganiser(request, tournament_id, user_id):
-    return promote_demote_helper.help_assign_organiser(request=request,user_id=user_id,tournament_id=tournament_id)
+    return assign_organiser.help_assign_organiser(request=request,user_id=user_id,tournament_id=tournament_id)
 
 @login_required
 def password(request):
@@ -195,8 +195,7 @@ def club_list(request):
 
 @login_required
 def apply_to_club(request, club_name):
-    success_string = create_applicant_membership_to_clubs.create_applicant_of_club(request=request, club_name=club_name)
-    messages.add_message(request, messages.SUCCESS, success_string)
+    create_applicant_membership_to_clubs.create_applicant_of_club(request=request, club_name=club_name)
     return club_list(request = request)
 
 class CreateNewClubView(LoginRequiredMixin,CreateView):
@@ -256,30 +255,8 @@ class CreateNewTournamentView(LoginRequiredMixin,CreateView):
 
 @login_required
 def participate_in_tournament(request,tournament_id):
-    current_user = request.user
-    tournament = Tournament.objects.get(id = tournament_id)
-    tournament_deadline = tournament.deadline_to_apply
-    tournament_capacity = tournament.capacity
-    current_number_of_players = tournament.get_number_of_participating_players()
-    current_time = timezone.now()
-    if current_number_of_players+1 > tournament_capacity:
-        messages.add_message(request, messages.ERROR, "The tournament is full, try join some other tournaments.")
-    elif current_time > tournament_deadline:
-        messages.add_message(request, messages.ERROR, "It is now too late to join the tournament.")
-    else:
-        success_string = apply_tournament.apply_for_tournament(request=request,tournament_id=tournament_id)
-        messages.add_message(request, messages.SUCCESS, success_string)
-    return redirect("tournaments")
+    return apply_tournament.manage_tournament_application(request=request,tournament_id=tournament_id)
 
 @login_required
 def withdraw_from_tournament(request,tournament_id):
-    current_user = request.user
-    tournament = Tournament.objects.get(id = tournament_id)
-    tournament_deadline = tournament.deadline_to_apply
-    current_time = timezone.now()
-    if current_time > tournament_deadline:
-        messages.add_message(request, messages.ERROR, "You can not withdraw from the tournament, it's too late!")
-    else:
-        success_string = withdraw_tournament.withdraw_from_tournament(request=request,tournament_id=tournament_id)
-        messages.add_message(request, messages.SUCCESS, success_string)
-    return redirect("tournaments")
+    return withdraw_tournament.manage_tournament_withdrawal(request=request, tournament_id=tournament_id)

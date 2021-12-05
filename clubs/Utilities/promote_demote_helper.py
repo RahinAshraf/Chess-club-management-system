@@ -1,4 +1,6 @@
+from django.http import request
 from ..Constants import consts
+from ..Utilities import message_adder
 from django.shortcuts import redirect
 from ..models import User, MembershipType, Club, Tournament
 from django.contrib import messages
@@ -28,104 +30,158 @@ def get_promote_and_demote_subject_user_with_club(request, user_id):
     except ObjectDoesNotExist:
         raise ObjectDoesNotExist
 
-def help_promote(request, user_id):
-    """user_id: the primary key of the user being promoted to 'member'
-    Officers and Club Owners are able to promote specific applicants to members"""
-    try:
-        subject_user_details = get_promote_and_demote_subject_user_with_club(request, user_id)
-        user_club = subject_user_details['user_club']
-        membership = subject_user_details['membership']
+# This section deals with the messages of the requests.
 
+##########################################################################################
+
+def process_success_demote_message(request, new_type):
+    message_string = "User has been successfully demoted to" + new_type
+    message_adder.add_success_message(request=request, success_string=message_string)
+
+def process_success_promote_message(request, new_type):
+    message_string = "User has been successfully promoted to" + new_type
+    message_adder.add_success_message(request=request, success_string=message_string)
+
+def process_failed_demote_message(request):
+    message_string = "You are not are not allowed to deomote users"
+    message_adder.add_error_message(request=request, error_string=message_string)
+
+def process_failed_promote_message(request):
+    message_string = "You are not are not allowed to promote users"
+    message_adder.add_error_message(request=request, error_string=message_string)
+
+def process_non_existing_user_message(request):
+    message_string = "Invalid user."
+    message_adder.add_error_message(request = request, error_string=message_string)
+
+def process_successful_transfer_message(request):
+    message_string = "Ownership successfully transferred"
+    message_adder.add_success_message(request,message_string)
+
+def process_unsuccessful_transfer_message(request):
+    message_string = "You are only allowed to transfer the ownership to an officer or you are not a club owner."
+    message_adder.add_error_message(request,message_string)
+
+##########################################################################################
+
+# This section helps with checking and processing the user who wants to promote/demote/transfer ownership.
+
+###################################################################################################################
+
+def is_current_user_officer_or_club_owner(membership_type_of_current_user):
+    return membership_type_of_current_user==consts.OFFICER or membership_type_of_current_user==consts.CLUB_OWNER
+
+def is_current_user_club_owner(membership_type_of_current_user):
+    return membership_type_of_current_user==consts.CLUB_OWNER
+
+def process_promoting_user_existence(request, user_id):
+    """This function helps process the request based on the existence of the user. 
+    If user exists nothing further is done."""
+    try:
+        get_promote_and_demote_subject_user_with_club(request, user_id)
     except ObjectDoesNotExist:
-        messages.add_message(request, messages.ERROR, "Invalid user to promote")
-        return redirect("user_list")
+        process_non_existing_user_message(request=request)
     else:
-        current_user = request.user
-        membership_type_of_current_user = current_user.get_membership_type_in_club(user_club)
-        if membership_type_of_current_user==consts.OFFICER or membership_type_of_current_user==consts.CLUB_OWNER:
-            new_type = promote_user[membership.type]
-            membership.type = new_type
-            membership.save()
-            message_string = "User has been successfully promoted to" + new_type
-            messages.add_message(request,messages.SUCCESS, message_string)
-        else:
-            messages.add_message(request, messages.ERROR, "You are not are not allowed to promote users")
-        return redirect("user_list")
+        process_current_user_promoting_access_rights(request,user_id)
+
+def process_demoting_user_existence(request, user_id):
+    """This function helps process the request based on the existence of the user. 
+    If user exists nothing further is done."""
+    try:
+        get_promote_and_demote_subject_user_with_club(request, user_id)
+    except ObjectDoesNotExist:
+        process_non_existing_user_message(request=request)
+    else:
+        process_current_user_demoting_access_rights(request,user_id)
+
+def process_transfer_ownership_user_existence(request, user_id):
+    """This function helps process the request based on the existence of the user. 
+    If user exists nothing further is done."""
+    try:
+        get_promote_and_demote_subject_user_with_club(request, user_id)
+    except ObjectDoesNotExist:
+        process_non_existing_user_message(request=request)
+    else:
+        process_current_user_transfer_ownership_rights(request,user_id)
+
+def process_promotion_of_subject_user(request,membership):
+    new_type = promote_user[membership.type]
+    membership.type = new_type
+    membership.save()
+    process_success_promote_message(request=request, new_type=new_type)
+
+def process_demotion_of_subject_user(request, membership):
+    new_type = demote_user[membership.type]
+    membership.type = new_type
+    membership.save()
+    process_success_demote_message(request=request, new_type=new_type)
+
+def process_transfership_of_current_user(user,owner_membership, membership, user_club):
+    new_type = demote_user[owner_membership.type]
+    owner_membership.type = new_type
+    owner_membership.save()
+    membership.type = promote_user[membership.type]
+    membership.save()
+    # Modifying the club owner of the Club model
+    club = Club.objects.get(pk = user_club)
+    club.club_owner = user
+    club.save()
+
+def process_current_user_promoting_access_rights(request,user_id):
+    subject_user_details = get_promote_and_demote_subject_user_with_club(request, user_id)
+    user_club = subject_user_details['user_club']
+    membership = subject_user_details['membership']
+    current_user = request.user
+    membership_type_of_current_user = current_user.get_membership_type_in_club(user_club)
+
+    if is_current_user_officer_or_club_owner(membership_type_of_current_user):
+        process_promotion_of_subject_user(request=request, membership=membership)
+    
+    else:
+        process_failed_promote_message(request=request)
+
+def process_current_user_demoting_access_rights(request, user_id):
+    subject_user_details = get_promote_and_demote_subject_user_with_club(request, user_id)
+    user_club = subject_user_details['user_club']
+    membership = subject_user_details['membership']
+    current_user = request.user
+    membership_type_of_current_user = current_user.get_membership_type_in_club(user_club)
+    if is_current_user_club_owner(membership_type_of_current_user):
+        process_demotion_of_subject_user(request=request, membership=membership)
+
+    else:
+        process_failed_demote_message(request=request)
+
+
+def process_current_user_transfer_ownership_rights(request, user_id):
+    subject_user_details = get_promote_and_demote_subject_user_with_club(request, user_id)
+    user_club = subject_user_details['user_club']
+    membership = subject_user_details['membership']
+    user = subject_user_details['subject_user']
+    current_user = request.user
+    owner_membership = MembershipType.objects.get(user=current_user, club = user_club)
+    if is_current_user_club_owner(owner_membership.type) and membership.type == consts.OFFICER:
+        process_transfership_of_current_user(user, owner_membership, membership, user_club)
+        process_successful_transfer_message(request=request)
+    else:
+        process_unsuccessful_transfer_message(request=request)
+    
+###################################################################################################################
+
+# This section is focused on the calling the above processing functions.
+
+##################################################################################
+def help_promote(request, user_id):
+    process_promoting_user_existence(request=request, user_id=user_id)
+    return redirect("user_list")
 
 def help_demote(request, user_id):
-    try:
-        subject_user_details = get_promote_and_demote_subject_user_with_club(request, user_id)
-        user_club = subject_user_details['user_club']
-        membership = subject_user_details['membership']
-    except ObjectDoesNotExist:
-        messages.add_message(request, messages.ERROR, "Invalid user")
-        return redirect("user_list")
-    else:
-        current_user = request.user
-        membership_type_of_current_user = current_user.get_membership_type_in_club(user_club)
-        if membership_type_of_current_user==consts.CLUB_OWNER:
-            new_type = demote_user[membership.type]
-            membership.type = new_type
-            membership.save()
-            message_string = "User has been successfully demoted to" + new_type
-            messages.add_message(request,messages.SUCCESS, message_string)
-        else:
-            messages.add_message(request, messages.ERROR, "You are not are not allowed to deomote users")
-        return redirect("user_list")
+    process_demoting_user_existence(request=request, user_id=user_id)
+    return redirect("user_list")
+
 
 def help_tansfer_ownership(request, user_id):
-    try:
-        subject_user_details = get_promote_and_demote_subject_user_with_club(request, user_id)
-        user_club = subject_user_details['user_club']
-        membership = subject_user_details['membership']
-        user = subject_user_details['subject_user']
-    except ObjectDoesNotExist:
-        messages.add_message(request, messages.ERROR, "Invalid user")
-        return redirect("user_list")
-    else:
-        current_user = request.user
-        owner_membership = MembershipType.objects.get(user=current_user, club = user_club)
-        if owner_membership.type==consts.CLUB_OWNER:
-            if (membership.type=="officer"):
-                new_type = demote_user[owner_membership.type]
-                owner_membership.type = new_type
-                owner_membership.save()
-                membership.type = promote_user[membership.type]
-                membership.save()
-                # Modifying the club owner of the Club model
-                club = Club.objects.get(pk = user_club)
-                club.club_owner = user
-                club.save()
-                messages.add_message(request, messages.SUCCESS, "Ownership successfully transferred")
-            else:
-                messages.add_message(request, messages.ERROR, "You are only allowed to transfer the ownership to an officer")
-        else:
-            messages.add_message(request, messages.ERROR, "You are not are not allowed to transfer ownership")
-        return redirect("user_list")
+    process_transfer_ownership_user_existence(request=request, user_id=user_id)
+    return redirect("user_list")
 
-def help_assign_organiser(request, user_id, tournament_id):
-    try:
-        subject_user_details = get_promote_and_demote_subject_user_with_club(request, user_id)
-        user_club = subject_user_details['user_club']
-        membership = subject_user_details['membership']
-        user = subject_user_details['subject_user']
-    except ObjectDoesNotExist:
-        messages.add_message(request, messages.ERROR, "Invalid user")
-        return redirect("user_list")
-    else:
-        current_user = request.user
-        user_membership = MembershipType.objects.get(user=current_user, club=user_club)
-        tournament = Tournament.objects.get(id = tournament_id)
-
-        if user_membership.type == consts.OFFICER:
-            if (membership.type == 'officer'):
-                if Tournament.objects.filter(co_organising_officers=user).exists():
-                    messages.add_message(request, messages.INFO, "The user is already co-organiser!")
-                    return redirect("tournaments")
-                tournament.co_organising_officers.add(user)
-                messages.add_message(request, messages.SUCCESS, "You have successfully assigned " + str(user.first_name) + " as a co-organiser of the tournament: " + str(tournament.name))
-            else:
-                messages.add_message(request, messages.ERROR, "You are only allowed to assign officer as co-organiser!")
-        else:
-            messages.add_message(request, messages.ERROR, "You are not are not allowed to assign organisers!")
-        return redirect("tournaments")
+##################################################################################
