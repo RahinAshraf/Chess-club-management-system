@@ -32,6 +32,7 @@
         <tr>
           <td>{{tournament.name}}</td>
           <td>{{tournament.description}}</td>
+          <td></td>
           <td>{{tournament.deadline_to_apply}}</td>
             {% if request.user == tournament.organising_officer  %}
               <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'officer_list' tournament.id %}" role="button" id="officer_list">Assign co-organisers</a></td>

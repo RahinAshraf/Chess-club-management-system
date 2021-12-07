@@ -15,7 +15,7 @@
   }
 
   #cover-image {
-    background-image: url('images/chess-king-image.png') no-repeat center center fixed;
+    background: url('images/chess-king-image.jpg') no-repeat center center fixed;
     -webkit-background-size: cover;
     -moz-background-size: cover;
     background-size: cover;
