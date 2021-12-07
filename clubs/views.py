@@ -9,10 +9,12 @@ from django.views import View
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import Http404
 from django.views.generic.edit import CreateView
 from .models import Tournament, User, MembershipType, Club
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.views.generic.edit import FormView
+from django.views.generic import ListView
 from django.urls import reverse
 from .Constants import consts
 from django.utils import timezone
@@ -159,39 +161,92 @@ def password(request):
     form = PasswordForm()
     return render(request, 'password.html', {'form': form})
 
-@login_required
-def user_list(request):
-    current_user = request.user
-    try:
-        current_user_club_name = request.session['club_choice']
-        current_user_club = Club.objects.get(pk = request.session['club_choice'])
-    except:
-        return redirect('test')
-    else:
-        users = current_user_club.get_all_users_with_types()
-        type = current_user.get_membership_type_in_club(current_user_club_name)
-        return render(request, 'user_list.html', {'users': users, "type": type})
+class UserListView (LoginRequiredMixin, ListView):
+    """View that shows a list of all users."""
 
-@login_required
-def officer_list(request, tournament_id):
-    current_user = request.user
-    tournament = Tournament.objects.get(id=tournament_id)
-    try:
-        current_user_club_name = request.session['club_choice']
-        current_user_club = Club.objects.get(pk = request.session['club_choice'])
-    except:
-        return redirect('test')
-    else:
-        users = current_user_club.get_all_officers_with_types(current_user)
-        type = current_user.get_membership_type_in_club(current_user_club_name)
-        return render(request, 'officer_list.html', {'users': users, "type": type, "tournament": tournament})
+    model = User
+    template_name  = "user_list.html"
+    context_object_name = "users"
+    pk_url_kwarg = 'user_id'
 
-@login_required
-def club_list(request):
-    clubs = Club.objects.all()
-    current_user = request.user
-    existing_clubs_of_user = current_user.get_clubs()
-    return render(request, 'club_list.html', {'clubs': clubs, 'existing_clubs':existing_clubs_of_user})
+    def get_context_data(self, *args, **kwargs):
+        """Generate content to be displayed in the template."""
+
+        context = super().get_context_data(*args, **kwargs)
+        context['current_user'] = self.request.user
+        # try:
+        context['current_user_club_name'] = self.request.session['club_choice']
+        context['current_user_club'] = Club.objects.get(pk = self.request.session['club_choice'])
+        # else:
+        #     context['users'] = current_user_club.get_all_users_with_types()
+        #     context['type'] = current_user.get_membership_type_in_club(current_user_club_name)
+        return context
+
+    def get(self, request, *args, **kwargs):
+        """Handle get   request, and redirect   to user_list if user_id invalid."""
+
+        try:
+            return super().get(request, *args, **kwargs)
+        except Http404:
+            return redirect('test')
+    # @login_required
+    # def user_list(request):
+    #     current_user = request.user
+    #     try:
+    #         current_user_club_name = request.session['club_choice']
+    #         current_user_club = Club.objects.get(pk = request.session['club_choice'])
+    #     except:
+    #         return redirect('test')
+    #     else:
+    #         users = current_user_club.get_all_users_with_types()
+    #         type = current_user.get_membership_type_in_club(current_user_club_name)
+    #         return render(request, 'user_list.html', {'users': users, "type": type})
+
+class OfficerListView(LoginRequiredMixin, ListView):
+    """View that shows a list of all officers."""
+
+    model = User
+    template_name  = "officer_list.html"
+    context_object_name = "officers"
+    pk_url_kwarg = 'user_id'
+
+
+    # @login_required
+    # def officer_list(request, tournament_id):
+    #     current_user = request.user
+    #     tournament = Tournament.objects.get(id=tournament_id)
+    #     try:
+    #         current_user_club_name = request.session['club_choice']
+    #         current_user_club = Club.objects.get(pk = request.session['club_choice'])
+    #     except:
+    #         return redirect('test')
+    #     else:
+    #         users = current_user_club.get_all_officers_with_types(current_user)
+    #         type = current_user.get_membership_type_in_club(current_user_club_name)
+    #         return render(request, 'officer_list.html', {'users': users, "type": type, "tournament": tournament})
+
+class ClubListView(LoginRequiredMixin, ListView):
+    """View that shows a list of all clubs."""
+
+    model = Club
+    template_name  = "club_list.html"
+    context_object_name = "clubs"
+
+    def get_context_data(self, *args, **kwargs):
+        """Generate content to be displayed in the template."""
+
+        # context = super().get_context_data(*args, **kwargs)
+        # current_user = self.request.user
+        # context['current_user'] = current_user
+        # context['existing_clubs_of_user'] = context.current_user.get_clubs()
+        # return context
+
+    # @login_required
+    # def club_list(request):
+    #     clubs = Club.objects.all()
+    #     current_user = request.user
+    #     existing_clubs_of_user = current_user.get_clubs()
+    #     return render(request, 'club_list.html', {'clubs': clubs, 'existing_clubs':existing_clubs_of_user})
 
 @login_required
 def apply_to_club(request, club_name):
