@@ -4,6 +4,8 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db.models.constraints import UniqueConstraint
 from django.db.models.expressions import F
+from django.db.models.fields.related import ManyToManyField
+from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ValidationError
@@ -259,6 +261,35 @@ class MembershipType(models.Model):
             if len(MembershipType.objects.filter(club = self.club).filter(type = consts.CLUB_OWNER)) >= 1:
                 raise ValidationError('There can only be one club owner')
 
+class Match(models.Model):
+    id = models.AutoField(primary_key=True)
+    player1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='Player1')
+    player2 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='Player2')
+    date = models.DateField()
+
+    def is_player_in_the_match(self,player):
+        """Tests whether the given player is one of the above players."""
+        return player == self.player1 or player == self.player2
+
+    def is_organising_officer_in_the_match(self,officer):
+        """This tests if organiser is one of the players. If so, it raises a Validation Error."""
+        if self.is_player_in_the_match(officer):
+            raise ValidationError('Officer cannot be in the match.')
+
+    def are_co_organising_officers_a_part_of_the_match(self,co_organising_officers):
+        """This tests if organiser is one of the players. If so, it raises a Validation Error."""
+        for co_organising_officer in co_organising_officers:
+            self.is_organising_officer_in_the_match(co_organising_officer)
+
+    def validate_two_players_are_not_the_same(self):
+        """This tests whether a match has been created between the same player."""
+        if self.player1 == self.player2:
+            raise ValidationError('A player cannot enter a match with themself.')
+
+    def save(self, *args, **kwargs):
+        self.validate_two_players_are_not_the_same()
+        return super().save(*args, **kwargs)
+
 class Tournament(models.Model):
     id = models.AutoField(primary_key=True)
     club = models.ForeignKey(Club, on_delete=models.CASCADE)
@@ -269,6 +300,7 @@ class Tournament(models.Model):
     organising_officer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='organising officer+')
     co_organising_officers = models.ManyToManyField(User, blank=True, related_name='co-organising officers+')
     deadline_to_apply = models.DateTimeField(blank=False)
+    matches = models.ManyToManyField(Match,blank=True,related_name='matches+')
 
     def _validate_participating_players_capacity(self):
         tournament = Tournament.objects.filter(pk = self.id)[0]
@@ -282,34 +314,39 @@ class Tournament(models.Model):
                 if player == self.organising_officer:
                     raise ValidationError('The organiser cannot participate.')
 
-    def _validate_organizer_type(self):
-        if self.organising_officer.get_membership_type_in_club(self.club.name) != consts.OFFICER:
-            raise ValidationError('The organiser must be an officer.')
+    def is_co_organiser_a_participating_player(self, co_organiser):
+        tournament = Tournament.objects.filter(pk = self.id)[0]
+        existing_players = tournament.participating_players.all()
+        if co_organiser in existing_players:
+            raise ValidationError('Co-organising player cannot be a participating player.')
+
+    def _validate_participating_players_must_not_include_co_organizers(self):
+        tournament = Tournament.objects.filter(pk = self.id)[0]
+        for co_organising_officer in tournament.co_organising_officers.all():
+            self.is_co_organiser_a_participating_player(co_organising_officer)
+
+    def _validate_co_organiser_type(self):
         tournament = Tournament.objects.filter(pk = self.id)[0]
         for co_organising_officer in tournament.co_organising_officers.all():
             if co_organising_officer.get_membership_type_in_club(self.club.name) != consts.OFFICER:
                 raise ValidationError('The co orginising officers must be an officer.')
 
+    def _validate_organizer_type(self):
+        if self.organising_officer.get_membership_type_in_club(self.club.name) != consts.OFFICER:
+            raise ValidationError('The organiser must be an officer.')
+        
     def get_associated_members(self):
         """ Returns all associated players and organizers of the tournament."""
-
         associated_member_list = []
-
         tournament = Tournament.objects.get(pk = self.id)
-
         # Adding Players
-
         for player in tournament.participating_players.all():
             associated_member_list.append(player)
-
         # Adding the organising officer
-
         associated_member_list.append(self.organising_officer)
-
         # Adding the co - organizing officer(s)
         for co_organising_officer in tournament.co_organising_officers.all():
             associated_member_list.append(co_organising_officer)
-
         return associated_member_list
 
     def get_number_of_co_organisers(self):
@@ -317,14 +354,31 @@ class Tournament(models.Model):
         return tournament.co_organising_officers.all().count()
 
     def get_number_of_participating_players(self):
-
         tournament = Tournament.objects.get(pk = self.id)
-
         return tournament.participating_players.all().count()
+
+    def _validate_that_the_organising_officer_a_part_of_any_matches(self):
+        """This method returns a validation error if the organising officer is in any match."""
+        tournament = Tournament.objects.get(pk = self.id)
+        existing_matches = tournament.matches.all()
+        for match in existing_matches:
+            match.is_organising_officer_in_the_match(self.organising_officer)
+
+    def _validate_that_the_co_organising_officers_a_part_of_any_matches(self):
+        """This method returns a validation error if the organising officer is in any match."""
+        tournament = Tournament.objects.get(pk = self.id)
+        existing_matches = tournament.matches.all()
+        co_organising_officers = tournament.co_organising_officers.all()
+        for match in existing_matches:
+            match.are_co_organising_officers_a_part_of_the_match(co_organising_officers)
 
     def save(self, *args, **kwargs):
         tournament = super().save(*args, **kwargs)
         self._validate_participating_players_capacity()
         self._validate_participating_players_must_not_include_organizers()
+        self._validate_participating_players_must_not_include_co_organizers()
         self._validate_organizer_type()
+        self._validate_co_organiser_type()
+        self._validate_that_the_organising_officer_a_part_of_any_matches()
+        self._validate_that_the_co_organising_officers_a_part_of_any_matches()
         return tournament
