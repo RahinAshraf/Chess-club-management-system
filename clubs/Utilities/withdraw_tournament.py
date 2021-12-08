@@ -32,7 +32,7 @@ def manage_tournament_withdrawal(request,tournament_id):
     tournament = get_tournament_object(tournament_id=tournament_id)
 
     if tournament_deadline_manager.is_time_left_to_enter(tournament=tournament):
-        withdraw_from_tournament()
+        withdraw_from_tournament(request,tournament)
 
     else:
         process_error_message(request=request)

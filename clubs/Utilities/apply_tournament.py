@@ -17,7 +17,7 @@ def get_tournament_object(tournament_id):
 def process_success_message(request,tournament):
     """This method constructs the success string and add the message."""
     tournament_name = tournament.name
-    success_string = "You are now removed from the tournament: " + tournament_name
+    success_string = "You are now added to the tournament: " + tournament_name
     message_adder.add_success_message(request=request, success_string=success_string)
 
 def process_deadline_error(request):
