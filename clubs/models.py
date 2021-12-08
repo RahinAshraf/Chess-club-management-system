@@ -8,8 +8,8 @@ from django.db.models.fields.related import ManyToManyField
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.core.exceptions import ValidationError
-from .Constants import consts
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from .Constants import consts,scores
 from libgravatar import Gravatar
 from django.utils import timezone
 
@@ -85,6 +85,22 @@ class ClubModelManager(models.Manager):
         # Creating the membership type object
         MembershipType.objects.create(user = user, club = club, type = consts.CLUB_OWNER)
         return club
+
+
+class scoreModelManager(models.Manager):
+    def _is_user_a_part_of_the_same_club(self, player, match):
+        """This function tests whether a user has a score already within a specific match.
+        If yes, then it would raise a value error."""
+        if len(Score.objects.filter(player = player).filter(match = match)) >= 1:
+            raise ValueError('Player cannot have the different scores in same match')
+        return False
+
+    def create(self, **obj_data):
+        player = obj_data['player']
+        match = obj_data['match']
+        self._is_user_a_part_of_the_same_club(player,match)
+        score = super().create(**obj_data)
+        return score
 
 class User(AbstractBaseUser, PermissionsMixin):
 
@@ -286,9 +302,39 @@ class Match(models.Model):
         if self.player1 == self.player2:
             raise ValidationError('A player cannot enter a match with themself.')
 
+    def get_other_player(self,player):
+        """This method gives the other player in the match than the one given in the parameters."""
+        if self.player1 != player:
+            return self.player1
+        return self.player2
+
     def save(self, *args, **kwargs):
         self.validate_two_players_are_not_the_same()
         return super().save(*args, **kwargs)
+
+"""Add some custom validators for the Score model."""
+def validate_scores(value):
+        if value not in scores.score_list:
+            raise ValidationError('Score value used is invalid')
+
+class Score(models.Model):
+    player = models.ForeignKey(User, on_delete=models.CASCADE, related_name='Player+')
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='match+')
+    score = models.DecimalField(decimal_places=1,max_digits=2,validators=[validate_scores])
+
+    def check_lose_score(self, score1, score2):
+        """This method checks if two scores are the same lose score."""
+        if score1 == scores.lose_score and score2 == scores.lose_score:
+            raise ValidationError("Both cannot lose")
+        return False
+
+    def check_win_score(self, score1, score2):
+        """This method checks if two scores are the same win score."""
+        if score1 == scores.win_score and score2 == scores.win_score:
+            raise ValidationError("Both cannot win")
+        return False
+    
+    objects = scoreModelManager()
 
 class Tournament(models.Model):
     id = models.AutoField(primary_key=True)
