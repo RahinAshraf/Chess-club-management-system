@@ -1,4 +1,5 @@
 from django.shortcuts import redirect, render
+from django.views.generic.detail import DetailView
 from .forms import CreateNewTournamentForm, SignUpForm
 from django.contrib.auth import login, logout
 from django.views.generic.edit import UpdateView
@@ -9,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.views.generic.edit import CreateView
-from .models import Tournament, User, Club
+from .models import Score, Tournament, User, Club
 from django.core.exceptions import ImproperlyConfigured
 from django.views.generic.edit import FormView
 from django.views.generic import ListView
@@ -335,3 +336,4 @@ class CreateNewTournamentView(LoginRequiredMixin,CreateView):
 
     def handle_no_permission(self):
         return redirect('test')
+

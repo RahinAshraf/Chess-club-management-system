@@ -8,7 +8,7 @@ from django.contrib.auth import login
 from django.db.models import fields
 from django.forms import widgets
 from .models import Tournament, User
-from .models import MembershipType, Club
+from .models import MembershipType, Club,Score
 from .Constants import consts
 class SignUpForm(forms.ModelForm):
     """Form enabling unregistered users to sign up."""
@@ -158,3 +158,9 @@ class CreateNewTournamentForm(forms.ModelForm):
             return Tournament.save()
         else:
             return None
+
+class Score(forms.ModelForm):
+    class Meta:
+        model = Score
+        fields = ['score'] 
+

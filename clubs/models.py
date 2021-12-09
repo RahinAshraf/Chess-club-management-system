@@ -4,7 +4,7 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db.models.constraints import UniqueConstraint
 from django.db.models.expressions import F
-from django.db.models.fields import proxy
+from django.db.models.fields import AutoField, proxy
 from django.db.models.fields.related import ForeignKey, ManyToManyField
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
@@ -13,6 +13,9 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from .Constants import consts,scores
 from libgravatar import Gravatar
 from django.utils import timezone
+import itertools
+import random
+import copy
 
 class UserManager(BaseUserManager):
 
@@ -431,6 +434,7 @@ class Tournament(models.Model):
         return tournament
 
 class Round(models.Model):
+    id=models.AutoField(primary_key=True)
     players = models.ManyToManyField(User, related_name='Players playing+')
     Tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     winners = models.ManyToManyField(User, related_name='Winners+')
@@ -438,7 +442,21 @@ class Round(models.Model):
     nextRound = models.ForeignKey('self', on_delete=models.RESTRICT, related_name='next round+', null = True)
 
     def createMatches(self):
-        pass
+        player_list_copy=self.create_copy_of_player_list()
+        while len(player_list_copy)>=2:
+            choice = random.sample(player_list_copy,2)
+            self.make_a_match(choice)
+            player_list_copy = set(player_list_copy) - set(choice)
+            
+        
+    def make_a_match(self,choices):
+        newMatch = Match.objects.create(player1 = choices[0], player2 = choices[1], date = timezone.now())
+        round=Round.objects.get(pk=self.id)
+        round.matches.add(newMatch)
+        
+    def create_copy_of_player_list(self):
+        round = Round.objects.get(pk=self.id)
+        return  set(copy.deepcopy(round.players.all()))
 
     def goToNextRound(self):
         pass

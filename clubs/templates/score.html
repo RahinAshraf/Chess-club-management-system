@@ -1,0 +1,11 @@
+{% extends 'base_content.html' %}
+{% block content %}
+<div class="container" class="bg">
+<h1>Score</h1>
+    <form method="POST" >
+        {% csrf_token %}
+        {% include 'partials/bootstrap_form.html' with form=form %}
+        <input type="submit">
+    </form> 
+</div>
+{% endblock %}
