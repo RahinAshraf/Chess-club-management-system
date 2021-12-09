@@ -435,7 +435,7 @@ class Round(models.Model):
     Tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     winners = models.ManyToManyField(User, related_name='Winners+')
     matches = models.ManyToManyField(Match, related_name='Matches+')
-    nextRound = models.ForeignKey('self', on_delete=models.RESTRICT, related_name='next round+')
+    nextRound = models.ForeignKey('self', on_delete=models.RESTRICT, related_name='next round+', null = True)
 
     def createMatches(self):
         pass
