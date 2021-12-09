@@ -1,7 +1,9 @@
 from django.test import TestCase
-from clubs.models import Club, Round, User, MembershipType, Tournament, Match,Group
+from clubs.models import Club, Round, User, MembershipType, Tournament, Match,Group,Score
 from django.core.exceptions import ValidationError
 from ...Constants import consts
+from django.utils import timezone
+
 class TournamentModelTestCase(TestCase):
 
     def setUp(self):
@@ -44,6 +46,10 @@ class TournamentModelTestCase(TestCase):
                                                     capacity = '12',
                                                     organising_officer = self.officer,
                                                     deadline_to_apply = '2021-12-05 23:59')
+
+        self.match=Match(id='1',player1=self.user,player2=self.user2,date=timezone.now())
+
+
         self.Tournament.save()
         
         self.group=Group(Tournament=self.Tournament)
@@ -68,9 +74,6 @@ class TournamentModelTestCase(TestCase):
             
             MembershipType.objects.create(user = user, club = self.club, type = consts.MEMBER)
             self.group.players.add(user)
-    
-    
- 
 
     
     
