@@ -321,24 +321,6 @@ def validate_scores(value):
         if value not in scores.score_list:
             raise ValidationError('Score value used is invalid')
 
-class Score(models.Model):
-    player = models.ForeignKey(User, on_delete=models.CASCADE, related_name='Player+')
-    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='match+')
-    score = models.DecimalField(decimal_places=1,max_digits=2,validators=[validate_scores])
-
-    def check_lose_score(self, score1, score2):
-        """This method checks if two scores are the same lose score."""
-        if score1 == scores.lose_score and score2 == scores.lose_score:
-            raise ValidationError("Both cannot lose")
-        return False
-
-    def check_win_score(self, score1, score2):
-        """This method checks if two scores are the same win score."""
-        if score1 == scores.win_score and score2 == scores.win_score:
-            raise ValidationError("Both cannot win")
-        return False
-    
-    objects = scoreModelManager()
 
 class Tournament(models.Model):
     id = models.AutoField(primary_key=True)
@@ -432,6 +414,7 @@ class Tournament(models.Model):
         self._validate_that_the_organising_officer_a_part_of_any_matches()
         self._validate_that_the_co_organising_officers_a_part_of_any_matches()
         return tournament
+    
 
 class Round(models.Model):
     id=models.AutoField(primary_key=True)
@@ -439,7 +422,7 @@ class Round(models.Model):
     Tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     winners = models.ManyToManyField(User, related_name='Winners+')
     matches = models.ManyToManyField(Match, related_name='Matches+')
-    nextRound = models.ForeignKey('self', on_delete=models.RESTRICT, related_name='next round+', null = True)
+    nextRound = models.ForeignKey('self', on_delete=models.RESTRICT, related_name='next round+',null = True)
 
     def createMatches(self):
         player_list_copy=self.create_copy_of_player_list()
@@ -458,15 +441,46 @@ class Round(models.Model):
         round = Round.objects.get(pk=self.id)
         return  set(copy.deepcopy(round.players.all()))
 
-    def goToNextRound(self):
-        pass
+    def goToNextRound(self,winnerList):
+        for winner in winnerList:
+            self.nextRound.players.add(winner)
+
 
 class Group(Round):
     class Meta:
         proxy = True
 
     def decideWinners(self):
-        pass
+        score_map=self.get_player_score_map()
+        group=Group.objects.get(pk=self.id)
+        self.put_two_best_players(score_map=score_map,group=group)
+
+
+    def put_two_best_players(self,score_map,group):
+        score_list = sorted(score_map.values())
+        for k,v in score_map.items():
+            self.add_winner(score_list,v,k,group)
+
+    def add_winner(self,score_list,score,player,group):
+        if score == score_list[len(score_list-1)] or score == score_list[len(score_list-2)]:
+            group.winners.add(player)
+
+
+    def get_player_score_map(self):
+        copy_player_list = self.create_copy_of_player_list()
+        player_to_score_map={}
+        for player in copy_player_list:
+            score_of_player=Score.objects.filter(player=player,round=self)
+            total_score = self.get_total_score(score_of_player)
+            player_to_score_map[player]=total_score
+        return player_to_score_map
+    
+    def get_total_score(self,score_list):
+        total_score=0
+        for score in score_list:
+            total_score+=score.score
+        return total_score
+            
 
     def createMatches(self):
         copy_player_list = self.create_copy_of_player_list()
@@ -482,3 +496,24 @@ class Group(Round):
         newMatch = Match.objects.create(player1 = choices[0], player2 = choices[1], date = timezone.now())
         group=Group.objects.get(pk=self.id)
         group.matches.add(newMatch)
+
+class Score(models.Model):
+    player = models.ForeignKey(User, on_delete=models.CASCADE, related_name='Player+')
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name='match+')
+    score = models.DecimalField(decimal_places=1,max_digits=2,validators=[validate_scores])
+    round = models.ForeignKey(Round, on_delete=models.CASCADE,blank=True,null=True)
+
+    def check_lose_score(self, score1, score2):
+        """This method checks if two scores are the same lose score."""
+        if score1 == scores.lose_score and score2 == scores.lose_score:
+            raise ValidationError("Both cannot lose")
+        return False
+
+    def check_win_score(self, score1, score2):
+        """This method checks if two scores are the same win score."""
+        if score1 == scores.win_score and score2 == scores.win_score:
+            raise ValidationError("Both cannot win")
+        return False
+    
+    objects = scoreModelManager()
+

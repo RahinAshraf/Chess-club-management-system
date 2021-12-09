@@ -65,8 +65,11 @@ class TournamentModelTestCase(TestCase):
                 chess_experience_level='1',
                 personal_statement=f'personal_statement{user_id}',
                 )
+            
             MembershipType.objects.create(user = user, club = self.club, type = consts.MEMBER)
             self.group.players.add(user)
+    
+    
  
 
     
