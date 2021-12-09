@@ -469,4 +469,16 @@ class Group(Round):
         pass
 
     def createMatches(self):
-        pass
+        copy_player_list = self.create_copy_of_player_list()
+        choices=list((itertools.combinations(copy_player_list,2)))
+        for choice in choices:
+            self.make_a_match(choice)
+
+    def create_copy_of_player_list(self):
+        group = Group.objects.get(pk=self.id)
+        return  set(copy.deepcopy(group.players.all()))
+
+    def make_a_match(self, choices):
+        newMatch = Match.objects.create(player1 = choices[0], player2 = choices[1], date = timezone.now())
+        group=Group.objects.get(pk=self.id)
+        group.matches.add(newMatch)

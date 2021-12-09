@@ -1,5 +1,5 @@
 from django.test import TestCase
-from clubs.models import Club, Round, User, MembershipType, Tournament, Match
+from clubs.models import Club, Round, User, MembershipType, Tournament, Match,Group
 from django.core.exceptions import ValidationError
 from ...Constants import consts
 class TournamentModelTestCase(TestCase):
@@ -46,20 +46,16 @@ class TournamentModelTestCase(TestCase):
                                                     deadline_to_apply = '2021-12-05 23:59')
         self.Tournament.save()
         
-        self.round=Round(Tournament=self.Tournament)
-        self.round.save()
+        self.group=Group(Tournament=self.Tournament)
+        self.group.save()
 
     def test_match_is_made(self):
         self._create_test_users()
-        self.round.createMatches()
-        self.assertEquals(self.round.matches.count(),5)
+        self.group.createMatches()
+        self.assertEquals(self.group.matches.count(),6)
 
 
-    def add_players(self):
-        self.round.players.add(self.user)
-        self.round.players.add(self.user2)
-
-    def _create_test_users(self, user_count=10):
+    def _create_test_users(self, user_count=4):
         for user_id in range(user_count):
             user = User.objects.create_user(email=f'user{user_id}@test.org',
                 password='Password123',
@@ -70,7 +66,11 @@ class TournamentModelTestCase(TestCase):
                 personal_statement=f'personal_statement{user_id}',
                 )
             MembershipType.objects.create(user = user, club = self.club, type = consts.MEMBER)
-            self.round.players.add(user)
+            self.group.players.add(user)
+ 
+
+    
+    
     
     
 
