@@ -4,7 +4,8 @@ from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db.models.constraints import UniqueConstraint
 from django.db.models.expressions import F
-from django.db.models.fields.related import ManyToManyField
+from django.db.models.fields import proxy
+from django.db.models.fields.related import ForeignKey, ManyToManyField
 from django.utils import translation
 from django.utils.translation import ugettext_lazy as _
 from django.core.validators import MaxValueValidator, MinValueValidator
@@ -428,3 +429,26 @@ class Tournament(models.Model):
         self._validate_that_the_organising_officer_a_part_of_any_matches()
         self._validate_that_the_co_organising_officers_a_part_of_any_matches()
         return tournament
+
+class Round(models.Model):
+    players = models.ManyToManyField(User, related_name='Players playing+')
+    Tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+    winners = models.ManyToManyField(User, related_name='Winners+')
+    matches = models.ManyToManyField(Match, related_name='Matches+')
+    nextRound = models.ForeignKey('self', on_delete=models.RESTRICT, related_name='next round+')
+
+    def createMatches(self):
+        pass
+
+    def goToNextRound(self):
+        pass
+
+class Group(Round):
+    class Meta:
+        proxy = True
+
+    def decideWinners(self):
+        pass
+
+    def createMatches(self):
+        pass
