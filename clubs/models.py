@@ -312,6 +312,12 @@ class Match(models.Model):
             return self.player1
         return self.player2
 
+    def put_score_for_player1(self, round, score):
+        Score.objects.create(player = self.player1, match = self, round = round, score=score)
+
+    def put_score_for_player2(self, round, score):
+        Score.objects.create(player = self.player2, match = self, round = round, score=score)
+
     def save(self, *args, **kwargs):
         self.validate_two_players_are_not_the_same()
         return super().save(*args, **kwargs)
@@ -436,15 +442,39 @@ class Round(models.Model):
         newMatch = Match.objects.create(player1 = choices[0], player2 = choices[1], date = timezone.now())
         round=Round.objects.get(pk=self.id)
         round.matches.add(newMatch)
+        self.Tournament.matches.add(newMatch)
         
     def create_copy_of_player_list(self):
         round = Round.objects.get(pk=self.id)
         return  set(copy.deepcopy(round.players.all()))
 
-    def goToNextRound(self,winnerList):
+    def go_to_next_round(self,winnerList):
         for winner in winnerList:
             self.nextRound.players.add(winner)
+        self.remove_losers_from_tournament_participant_list(winnerList)
 
+    def remove_losers_from_tournament_participant_list(self,winnerList):
+        self.Tournament.participating_players.clear()
+        for winner in winnerList:
+            self.Tournament.participating_players.add(winner)
+
+    def decideWinners(self):
+        round = Round.objects.get(pk=self.id)
+        player_to_score_map = self.get_player_score_map()
+        for k,v in player_to_score_map.items():
+            self.put_winner_in_winner_list(v,k,round)
+    
+    def put_winner_in_winner_list(self, score, player, round):
+        if score == scores.win_score:
+            round.winners.add(player)
+
+    def get_player_score_map(self):
+        copy_player_list = self.create_copy_of_player_list()
+        player_to_score_map={}
+        for player in copy_player_list:
+            score_of_player=Score.objects.get(player=player,round=self)
+            player_to_score_map[player] = score_of_player.score
+        return player_to_score_map
 
 class Group(Round):
     class Meta:
@@ -462,7 +492,7 @@ class Group(Round):
             self.add_winner(score_list,v,k,group)
 
     def add_winner(self,score_list,score,player,group):
-        if score == score_list[len(score_list-1)] or score == score_list[len(score_list-2)]:
+        if score == score_list[len(score_list)-1] or score == score_list[len(score_list)-2]:
             group.winners.add(player)
 
 
@@ -496,6 +526,13 @@ class Group(Round):
         newMatch = Match.objects.create(player1 = choices[0], player2 = choices[1], date = timezone.now())
         group=Group.objects.get(pk=self.id)
         group.matches.add(newMatch)
+        self.Tournament.matches.add(newMatch)
+
+    def remove_losers_from_tournament_participant_list(self,winnerList):
+        group = Group.objects.get(id = self.id)
+        losers = set(group.players.all()) - set(winnerList)
+        for loser in losers:
+            self.Tournament.participating_players.remove(loser)
 
 class Score(models.Model):
     player = models.ForeignKey(User, on_delete=models.CASCADE, related_name='Player+')

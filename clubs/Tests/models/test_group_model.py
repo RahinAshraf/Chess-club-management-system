@@ -1,6 +1,5 @@
 from django.test import TestCase
-from clubs.models import Club, Round, User, MembershipType, Tournament, Match,Group,Score
-from django.core.exceptions import ValidationError
+from clubs.models import Club, User, MembershipType, Tournament, Match,Group
 from ...Constants import consts
 from django.utils import timezone
 
@@ -55,11 +54,33 @@ class TournamentModelTestCase(TestCase):
         self.group=Group(Tournament=self.Tournament)
         self.group.save()
 
+        self.group2=Group(Tournament=self.Tournament)
+        self.group2.save()
+        self.group.nextRound = self.group2
+
     def test_match_is_made(self):
         self._create_test_users()
         self.group.createMatches()
         self.assertEquals(self.group.matches.count(),6)
 
+    def test_decide_winners(self):
+        self._create_test_users()
+        self.group.createMatches()
+        self.assertEqual(self.group.matches.count(),6)
+        self._create_test_match_results()
+        self.group.decideWinners()
+        self.assertEqual(self.group.winners.all().count(),2)
+
+    def test_advance_to_next_round(self):
+        self._create_test_users()
+        self.group.createMatches()
+        self.assertEqual(self.group.matches.count(),6)
+        self._create_test_match_results()
+        self.group.decideWinners()
+        self.assertEqual(self.group.winners.all().count(),2)
+        self.group.go_to_next_round(self.group.winners.all())
+        self.assertEqual(self.group2.players.all().count(), 2)
+        self.assertEqual(self.Tournament.participating_players.all().count(),2)
 
     def _create_test_users(self, user_count=4):
         for user_id in range(user_count):
@@ -74,12 +95,9 @@ class TournamentModelTestCase(TestCase):
             
             MembershipType.objects.create(user = user, club = self.club, type = consts.MEMBER)
             self.group.players.add(user)
+            self.Tournament.participating_players.add(user)
 
-    
-    
-    
-    
-
-
-
-    
+    def _create_test_match_results(self):
+        for match in self.group.matches.all():
+            match.put_score_for_player1(round = self.group, score = 1)
+            match.put_score_for_player2(round = self.group, score = 0)

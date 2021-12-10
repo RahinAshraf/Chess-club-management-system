@@ -49,11 +49,25 @@ class TournamentModelTestCase(TestCase):
         self.round=Round(Tournament=self.Tournament)
         self.round.save()
 
+        self.round2=Round(Tournament=self.Tournament)
+        self.round2.save()
+        self.round.nextRound = self.round2
+
     def test_match_is_made(self):
         self._create_test_users()
         self.round.createMatches()
         self.assertEquals(self.round.matches.count(),5)
 
+    def test_advance_to_next_round(self):
+        self._create_test_users()
+        self.round.createMatches()
+        self.assertEquals(self.round.matches.count(),5)
+        self._create_test_match_results()
+        self.round.decideWinners()
+        self.assertEqual(self.round.winners.all().count(),5)
+        self.round.go_to_next_round(self.round.winners.all())
+        self.assertEqual(self.round2.players.all().count(), 5)
+        self.assertEqual(self.Tournament.participating_players.all().count(),5)
 
     def add_players(self):
         self.round.players.add(self.user)
@@ -71,9 +85,9 @@ class TournamentModelTestCase(TestCase):
                 )
             MembershipType.objects.create(user = user, club = self.club, type = consts.MEMBER)
             self.round.players.add(user)
-    
-    
+            self.Tournament.participating_players.add(user)    
 
-
-
-    
+    def _create_test_match_results(self):
+        for match in self.round.matches.all():
+            match.put_score_for_player1(round = self.round, score = 1)
+            match.put_score_for_player2(round = self.round, score = 0)
