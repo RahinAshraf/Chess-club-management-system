@@ -1,8 +1,9 @@
-from django.test import TestCase
-from clubs.models import Club, Round, User, MembershipType, Tournament, Match
-from django.core.exceptions import ValidationError
 from ...Constants import consts
-class TournamentModelTestCase(TestCase):
+from django.test import TestCase
+from clubs.models import Club, Group, Round, User, MembershipType, Tournament
+from ...Utilities import create_round_and_group_helper
+
+class TestCreateRoundAndGroupHelper(TestCase):
 
     def setUp(self):
 
@@ -45,18 +46,18 @@ class TournamentModelTestCase(TestCase):
                                                     organising_officer = self.officer,
                                                     deadline_to_apply = '2021-12-05 23:59')
         self.Tournament.save()
-        
-        self.round=Round(Tournament=self.Tournament)
-        self.round.save()
 
-    def test_match_is_made(self):
+
+    def test_create_rounds(self):
         self._create_test_users()
-        self.round.createMatches()
-        self.assertEquals(self.round.matches.count(),5)
-
-    def add_players(self):
-        self.round.players.add(self.user)
-        self.round.players.add(self.user2)
+        rounds = create_round_and_group_helper.match_creator_helper(self.Tournament)
+        for round in rounds:
+            round.createMatches()
+            self._create_test_match_results(round)
+            round.decideWinners()
+        new_round = create_round_and_group_helper.match_creator_helper(self.Tournament)
+        self.assertEqual(len(new_round),1)
+        self.assertEqual(self.Tournament.participating_players.all().count(),5)
 
     def _create_test_users(self, user_count=10):
         for user_id in range(user_count):
@@ -69,10 +70,23 @@ class TournamentModelTestCase(TestCase):
                 personal_statement=f'personal_statement{user_id}',
                 )
             MembershipType.objects.create(user = user, club = self.club, type = consts.MEMBER)
-            self.round.players.add(user)
-            self.Tournament.participating_players.add(user)    
+            self.Tournament.participating_players.add(user)
 
-    def _create_test_match_results(self):
-        for match in self.round.matches.all():
-            match.put_score_for_player1(round = self.round, score = 1)
-            match.put_score_for_player2(round = self.round, score = 0)
+    def _create_test_match_results(self,round):
+        for match in round.matches.all():
+            match.put_score_for_player1(round = round, score = 1)
+            match.put_score_for_player2(round = round, score = 0)
+
+    def test_creation_of_groups_and_invalid_groups(self):
+        self._create_test_users(user_count = 32)
+        groups = create_round_and_group_helper.match_creator_helper(self.Tournament)
+        self.assertEqual(len(groups),8)
+        for group in groups:
+            group.createMatches()
+            self._create_test_match_results(group)
+            group_list = create_round_and_group_helper.match_creator_helper(self.Tournament)
+            self.assertEqual(group_list,None)
+            group.decideWinners()
+        self.assertEqual(self.Tournament.participating_players.all().count(),16)
+        new_group = create_round_and_group_helper.match_creator_helper(self.Tournament)
+        self.assertEqual(len(new_group),1)

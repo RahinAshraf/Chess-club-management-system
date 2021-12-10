@@ -318,6 +318,14 @@ class Match(models.Model):
     def put_score_for_player2(self, round, score):
         Score.objects.create(player = self.player2, match = self, round = round, score=score)
 
+    def has_match_been_scored(self,round):
+        try:
+            Score.objects.get(player = self.player1, match = self, round = round)
+            Score.objects.get(player = self.player2, match = self, round = round)
+            return True
+        except:
+            return False
+
     def save(self, *args, **kwargs):
         self.validate_two_players_are_not_the_same()
         return super().save(*args, **kwargs)
@@ -428,8 +436,7 @@ class Round(models.Model):
     Tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     winners = models.ManyToManyField(User, related_name='Winners+')
     matches = models.ManyToManyField(Match, related_name='Matches+')
-    nextRound = models.ForeignKey('self', on_delete=models.RESTRICT, related_name='next round+',null = True)
-
+    has_started = models.BooleanField(default=False)
     def createMatches(self):
         player_list_copy=self.create_copy_of_player_list()
         while len(player_list_copy)>=2:
@@ -454,15 +461,17 @@ class Round(models.Model):
         self.remove_losers_from_tournament_participant_list(winnerList)
 
     def remove_losers_from_tournament_participant_list(self,winnerList):
-        self.Tournament.participating_players.clear()
-        for winner in winnerList:
-            self.Tournament.participating_players.add(winner)
+        round = Round.objects.get(id = self.id)
+        losers = set(round.players.all()) - set(winnerList)
+        for loser in losers:
+            self.Tournament.participating_players.remove(loser)
 
     def decideWinners(self):
         round = Round.objects.get(pk=self.id)
         player_to_score_map = self.get_player_score_map()
         for k,v in player_to_score_map.items():
             self.put_winner_in_winner_list(v,k,round)
+        self.remove_losers_from_tournament_participant_list(round.winners.all())
     
     def put_winner_in_winner_list(self, score, player, round):
         if score == scores.win_score:
@@ -484,6 +493,7 @@ class Group(Round):
         score_map=self.get_player_score_map()
         group=Group.objects.get(pk=self.id)
         self.put_two_best_players(score_map=score_map,group=group)
+        self.remove_losers_from_tournament_participant_list(group.winners.all())
 
 
     def put_two_best_players(self,score_map,group):
