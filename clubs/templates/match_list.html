@@ -10,27 +10,6 @@
        <td>Player 1</td>
        <td>Player 2</td>
        <td>Date</td>
-       <td>
-        <div class="dropdown">
-          <a class="nav-link" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <button href="#" class="btn btn-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              Round/Group
-            </button>
-          </a>
-          <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-            {% for round in rounds %}
-            <li>
-              <a class="dropdown-item" href="#">
-                Round/Group{{round.id}}
-                {% if round.has_winners_been_decided %}
-                <span class="badge badge-pill badge-primary"></span>
-                {%endif%}
-              </a>
-            </li>
-            {% endfor %}
-          </ul>
-        </div>
-        </td>
       </tr>
       {% for round in rounds %}
         {% for match in round.matches.all %}
@@ -55,6 +34,7 @@
               {% endif %}
           </tr>
         {% endfor %}
+      {% endfor %}
       </table>
     </div>
   </div>
