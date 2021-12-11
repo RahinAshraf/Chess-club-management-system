@@ -25,10 +25,20 @@
             <td>{{match.player1.first_name}}</td>
             <td>{{match.player2.first_name}}</td>
             <td>{{match.date}}</td>
-            <td><a class="btn btn-primary btn-sm text-nowrap" href="#" role="button" id="score_of_player_1">Score for Player 1</a></td>
             {% if request.user == tournament.organising_officer  %}
-               <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'score_of_player' match_id user_id %}" role="button" id="score_of_player_1">Score for Player 1</a></td>
-               <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'score_of_player' match_id user_id %}" role="button" id="score_of_player_2">Score for Player 2</a></td>
+              <td>
+                <div class="dropdown">
+                  <a class="nav-link" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button href="#" class="btn btn-primary btn-bg dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                      Result
+                    </button>
+                  </a>
+                  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <li><a class="dropdown-item" href="#" role="button" id="score_of_player_1">Score for Player 1</a></li>
+                    <li><a class="dropdown-item" href="#" role="button" id="score_of_player_1">Score for Player 2</a></li>
+                  </ul>
+                </div>
+              </td>
             {% endif %}
           </tr>
         {% endfor %}

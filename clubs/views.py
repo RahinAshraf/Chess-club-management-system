@@ -76,9 +76,10 @@ def generate_matches(request, tournament_id):
             matches = matches + rod.get_all_matches()
 
     if len(matches) == 0:
-        messages.add_message(request, messages.ERROR, "There are currently now players in the tournament.")
+        messages.add_message(request, messages.ERROR, "There are currently no players in the tournament.")
         return redirect('tournaments')
     else:
+        messages.add_message(request, messages.SUCCESS, "Matches have been successfully generated!.")
         return render(request, 'match_list.html', {'matches': matches})
 
 @login_required
@@ -278,6 +279,7 @@ class MatchListView(LoginRequiredMixin, ListView):
         context['current_user'] = current_user
         tournament_id = self.kwargs['tournament_id']
         tournament = Tournament.objects.get(id=tournament_id)
+        context['tournament'] = tournament
         try:
             context['current_user_club_name'] = current_user_club_name
             context['current_user_club'] = current_user_club

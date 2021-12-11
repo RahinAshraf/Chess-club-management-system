@@ -462,7 +462,7 @@ class Round(models.Model):
         for match in round.matches.all():
             matches.append(match)
 
-        return matches        
+        return matches
 
     def make_a_match(self,choices):
         newMatch = Match.objects.create(player1 = choices[0], player2 = choices[1], date = timezone.now())
