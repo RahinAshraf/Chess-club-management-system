@@ -313,14 +313,21 @@ class Match(models.Model):
         if self.player1 == self.player2:
             raise ValidationError('A player cannot enter a match with themself.')
 
+    def get_all_players(self):
+        """This method returns the players in the match as a list."""
+        list_of_players = []
+        list_of_players.append(self.player1)
+        list_of_players.append(self.player1)
+        return list_of_players
+
     def get_other_player(self,player):
         """This method gives the other player in the match than the one given in the parameters."""
         if self.player1 != player:
             return self.player1
         return self.player2
 
-    def put_score_for_player1(self, round, score):
-        Score.objects.create(player = self.player1, match = self, round = round, score=score)
+    def put_score_for_player(self,round,score,player):
+        Score.objects.create(player = player, match = self, round = round, score=score)
 
     def put_score_for_player2(self, round, score):
         Score.objects.create(player = self.player2, match = self, round = round, score=score)
@@ -495,7 +502,7 @@ class Round(models.Model):
         self.remove_losers_from_tournament_participant_list(round.winners.all())
 
     def put_winner_in_winner_list(self, score, player, round):
-        if score == scores.win_score:
+        if score == scores.win_score and player not in round.winners.all():
             round.winners.add(player)
 
     def get_player_score_map(self):
@@ -509,15 +516,26 @@ class Round(models.Model):
     def has_winners_been_decided(self):
         return self.winners.all().count() == self.players.all().count() / 2
 
+    def is_group(self):
+        """Checks if the instance of round is a group."""
+        return isinstance(self,Group)
+
 class Group(Round):
     class Meta:
         proxy = True
 
+    def have_all_matches_been_marked(self,group):
+        for match in group.matches.all():
+            if not match.has_match_been_scored(group):
+                return False
+        return True
+
     def decideWinners(self):
-        score_map=self.get_player_score_map()
         group=Group.objects.get(pk=self.id)
-        self.put_two_best_players(score_map=score_map,group=group)
-        self.remove_losers_from_tournament_participant_list(group.winners.all())
+        if self.have_all_matches_been_marked(group):
+            score_map=self.get_player_score_map()
+            self.put_two_best_players(score_map=score_map,group=group)
+            self.remove_losers_from_tournament_participant_list(group.winners.all())
 
 
     def put_two_best_players(self,score_map,group):

@@ -1,4 +1,5 @@
 import copy
+from math import log
 from django.shortcuts import redirect, render
 from django.views.generic.detail import DetailView
 from .forms import CreateNewTournamentForm, SignUpForm
@@ -18,7 +19,7 @@ from django.views.generic import ListView
 from django.urls import reverse
 from .Utilities import promote_demote_helper,create_applicant_membership_to_clubs
 from .Utilities import apply_tournament,switch_user_club
-from .Utilities import withdraw_tournament,assign_organiser,generate_match_helper
+from .Utilities import withdraw_tournament,assign_organiser,generate_match_helper,score_player_helper
 
 def get_club_choice(request):
     """Utility function to return the club name the user has selected."""
@@ -62,6 +63,14 @@ def withdraw_from_tournament(request,tournament_id):
 @login_required
 def generate_matches(request, tournament_id):
     return generate_match_helper.help_generate_mathes(request,tournament_id)
+
+@login_required
+def score_player(request,round_id,match_id,player_id):
+    return score_player_helper.help_score_player(request,round_id,match_id,player_id)
+
+@login_required
+def draw_match(request,round_id,match_id):
+    return score_player_helper.help_draw_match(request,round_id,match_id)
 
 @login_required
 def apply_to_club(request, club_name):
