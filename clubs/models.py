@@ -380,7 +380,7 @@ class Tournament(models.Model):
     def _validate_organizer_type(self):
         if self.organising_officer.get_membership_type_in_club(self.club.name) != consts.OFFICER:
             raise ValidationError('The organiser must be an officer.')
-        
+
     def get_associated_members(self):
         """ Returns all associated players and organizers of the tournament."""
         associated_member_list = []
@@ -394,6 +394,16 @@ class Tournament(models.Model):
         for co_organising_officer in tournament.co_organising_officers.all():
             associated_member_list.append(co_organising_officer)
         return associated_member_list
+
+    def get_all_matches(self):
+        """Returns all matches"""
+        matches = []
+        tournament = Tournament.objects.get(pk = self.id)
+
+        for match in tournament.matches.all():
+            matches.append(match)
+
+        return matches
 
     def get_number_of_co_organisers(self):
         tournament = Tournament.objects.get(pk = self.id)
@@ -428,7 +438,7 @@ class Tournament(models.Model):
         self._validate_that_the_organising_officer_a_part_of_any_matches()
         self._validate_that_the_co_organising_officers_a_part_of_any_matches()
         return tournament
-    
+
 
 class Round(models.Model):
     id=models.AutoField(primary_key=True)
@@ -443,14 +453,23 @@ class Round(models.Model):
             choice = random.sample(player_list_copy,2)
             self.make_a_match(choice)
             player_list_copy = set(player_list_copy) - set(choice)
-            
-        
+
+    def get_all_matches(self):
+        """Returns all matches"""
+        matches = []
+        round = Round.objects.get(pk = self.id)
+
+        for match in round.matches.all():
+            matches.append(match)
+
+        return matches        
+
     def make_a_match(self,choices):
         newMatch = Match.objects.create(player1 = choices[0], player2 = choices[1], date = timezone.now())
         round=Round.objects.get(pk=self.id)
         round.matches.add(newMatch)
         self.Tournament.matches.add(newMatch)
-        
+
     def create_copy_of_player_list(self):
         round = Round.objects.get(pk=self.id)
         return  set(copy.deepcopy(round.players.all()))
@@ -472,7 +491,7 @@ class Round(models.Model):
         for k,v in player_to_score_map.items():
             self.put_winner_in_winner_list(v,k,round)
         self.remove_losers_from_tournament_participant_list(round.winners.all())
-    
+
     def put_winner_in_winner_list(self, score, player, round):
         if score == scores.win_score:
             round.winners.add(player)
@@ -514,13 +533,13 @@ class Group(Round):
             total_score = self.get_total_score(score_of_player)
             player_to_score_map[player]=total_score
         return player_to_score_map
-    
+
     def get_total_score(self,score_list):
         total_score=0
         for score in score_list:
             total_score+=score.score
         return total_score
-            
+
 
     def createMatches(self):
         copy_player_list = self.create_copy_of_player_list()
@@ -561,6 +580,5 @@ class Score(models.Model):
         if score1 == scores.win_score and score2 == scores.win_score:
             raise ValidationError("Both cannot win")
         return False
-    
-    objects = scoreModelManager()
 
+    objects = scoreModelManager()

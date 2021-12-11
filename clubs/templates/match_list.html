@@ -13,29 +13,27 @@
 <div class="container">
   <div class="row">
     <div class="col-12">
-      <h1>Clubs</h1>
+      <h1>Matches</h1>
       <table class="table">
       <tr>
        <td>Player 1</td>
        <td>Player 2</td>
        <td>Date</td>
-       <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'create_a_new_match' %}" role="button" id="new_match">Create a new match</a></td>
       </tr>
         {% for match in matches %}
           <tr>
             <td>{{match.player1.first_name}}</td>
             <td>{{match.player2.first_name}}</td>
-            <td><p>{{match.Date}}</p></td>
+            <td>{{match.date}}</td>
+            <td><a class="btn btn-primary btn-sm text-nowrap" href="#" role="button" id="score_of_player_1">Score for Player 1</a></td>
+            {% if request.user == tournament.organising_officer  %}
+               <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'score_of_player' match_id user_id %}" role="button" id="score_of_player_1">Score for Player 1</a></td>
+               <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'score_of_player' match_id user_id %}" role="button" id="score_of_player_2">Score for Player 2</a></td>
+            {% endif %}
+          </tr>
         {% endfor %}
-         {% if request.user == tournament.organising_officer  %}
-            <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'score_of_player' match_id user_id %}" role="button" id="score_of_player_1">Score for Player 1</a></td>
-            <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'score_of_player' match_id user_id %}" role="button" id="score_of_player_2">Score for Player 2</a></td>
-
       </table>
     </div>
   </div>
 </div>
 {% endblock %}
-
-
-

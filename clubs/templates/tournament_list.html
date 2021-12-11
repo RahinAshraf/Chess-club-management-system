@@ -35,13 +35,38 @@
           <td></td>
           <td>{{tournament.deadline_to_apply}}</td>
             {% if request.user == tournament.organising_officer  %}
-              <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'officer_list' tournament.id %}" role="button" id="officer_list">Assign co-organisers</a></td>
+            <td>
+              <div class="dropdown">
+                <a class="nav-link" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <button href="#" class="btn btn-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Manage Tournament
+                  </button>
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                  <li><a class="dropdown-item" href="{% url 'officer_list' tournament.id %}" role="button" id="officer_list">Assign co-organisers</a></li>
+                  <li><a class="dropdown-item" href="{% url 'generate_matches' tournament.id %}" role="button" id="officer_list">Generate Matches</a></li>
+                  <li><a class="dropdown-item" href="{% url 'match_list' tournament.id %}" role="button" id="officer_list">View Matches</a></li>
+                </ul>
+              </div>
+            </td>
             {% else %}
-              {% if request.user|officer:tournament.id %}
-                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'withdraw_from_tournament' tournament.id %}" role="button" id="withdraw">Withdraw</a></td>
-              {% else%}
-                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'participate_in_tournament' tournament.id %}" role="button" id="join_tournament">Join tournament</a></td>
-              {% endif %}
+            <td>
+              <div class="dropdown">
+                <a class="nav-link" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <button href="#" class="btn btn-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    View or Join Tournament
+                  </button>
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                  <li><a class="dropdown-item" href="{% url 'match_list' tournament.id %}" role="button">View Matches</a></li>
+                  {% if request.user|officer:tournament.id %}
+                    <li><a class="dropdown-item" href="{% url 'withdraw_from_tournament' tournament.id %}" role="button">Withdraw</a></li>
+                  {% else%}
+                    <li><a class="dropdown-item" href="{% url 'participate_in_tournament' tournament.id %}" role="button">Join tournament</a></li>
+                  {% endif %}
+                </ul>
+              </div>
+            </td>
             {% endif %}
           </tr>
         {% endfor %}

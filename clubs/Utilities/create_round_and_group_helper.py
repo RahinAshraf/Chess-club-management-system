@@ -63,7 +63,7 @@ def odd_even_capacity_manager(tournament,round):
        player_list = randomly_choose_players_from_a_set(set(tournament.participating_players.all()))
        return distribute_players_into_a_round(round,player_list)
     else:
-        return distribute_players_into_a_round(round,tournament.participating_players.all()) 
+        return distribute_players_into_a_round(round,tournament.participating_players.all())
 
 def has_round_started(round):
     return round.has_started
@@ -123,8 +123,15 @@ def check_if_all_rounds_and_groups_have_required_winners(tournament):
             return False
     return True
 
+def is_match_list_empty(tournament):
+    matches = tournament.get_all_matches()
+    if len(matches) == 0:
+        return True
+    else:
+        return False
+
 def can_generate_matches(tournament):
-    if check_if_all_rounds_and_groups_have_required_winners(tournament):
+    if check_if_all_rounds_and_groups_have_required_winners(tournament) or is_match_list_empty(tournament):
         return True
     return False
 
@@ -138,4 +145,3 @@ def create_round_or_groups(tournament):
 def match_creator_helper(tournament):
     if can_generate_matches(tournament):
         return create_round_or_groups(tournament)
-
