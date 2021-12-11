@@ -11,20 +11,25 @@
        <td>Player 2</td>
        <td>Date</td>
        <td>
-          <div class="dropdown">
-          <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Round/Group
-          </button>
-            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-              {% for round in rounds %}
-                <a class="dropdown-item" href="#">Round/Group{{round.id}}
-                  {% if round.has_winners_been_decided %}
-                    <span class="badge badge-pill badge-primary"></span>
-                  {% endif %}
-                </a>
-              {% endfor %}
-            </div>
-          </div>
+        <div class="dropdown">
+          <a class="nav-link" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <button href="#" class="btn btn-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Round/Group
+            </button>
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+            {% for round in rounds %}
+            <li>
+              <a class="dropdown-item" href="#">
+                Round/Group{{round.id}}
+                {% if round.has_winners_been_decided %}
+                <span class="badge badge-pill badge-primary"></span>
+                {%endif%}
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
         </td>
       </tr>
         {% for match in matches %}
