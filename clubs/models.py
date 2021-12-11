@@ -281,6 +281,13 @@ class MembershipType(models.Model):
             if len(MembershipType.objects.filter(club = self.club).filter(type = consts.CLUB_OWNER)) >= 1:
                 raise ValidationError('There can only be one club owner')
 
+
+
+"""Add some custom validators for the Score model."""
+def validate_scores(value):
+        if value not in scores.score_list:
+            raise ValidationError('Score value used is invalid')
+
 class Match(models.Model):
     id = models.AutoField(primary_key=True)
     player1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='Player1')
@@ -329,11 +336,6 @@ class Match(models.Model):
     def save(self, *args, **kwargs):
         self.validate_two_players_are_not_the_same()
         return super().save(*args, **kwargs)
-
-"""Add some custom validators for the Score model."""
-def validate_scores(value):
-        if value not in scores.score_list:
-            raise ValidationError('Score value used is invalid')
 
 
 class Tournament(models.Model):
@@ -455,7 +457,7 @@ class Round(models.Model):
             player_list_copy = set(player_list_copy) - set(choice)
 
     def get_all_matches(self):
-        """Returns all matches"""
+        """Returns all matches as a list."""
         matches = []
         round = Round.objects.get(pk = self.id)
 
@@ -468,7 +470,7 @@ class Round(models.Model):
         newMatch = Match.objects.create(player1 = choices[0], player2 = choices[1], date = timezone.now())
         round=Round.objects.get(pk=self.id)
         round.matches.add(newMatch)
-        self.Tournament.matches.add(newMatch)
+        round.Tournament.matches.add(newMatch)
 
     def create_copy_of_player_list(self):
         round = Round.objects.get(pk=self.id)
@@ -503,6 +505,9 @@ class Round(models.Model):
             score_of_player=Score.objects.get(player=player,round=self)
             player_to_score_map[player] = score_of_player.score
         return player_to_score_map
+
+    def has_winners_been_decided(self):
+        return self.winners.all().count() == self.players.all().count() / 2
 
 class Group(Round):
     class Meta:
@@ -555,13 +560,16 @@ class Group(Round):
         newMatch = Match.objects.create(player1 = choices[0], player2 = choices[1], date = timezone.now())
         group=Group.objects.get(pk=self.id)
         group.matches.add(newMatch)
-        self.Tournament.matches.add(newMatch)
+        group.Tournament.matches.add(newMatch)
 
     def remove_losers_from_tournament_participant_list(self,winnerList):
         group = Group.objects.get(id = self.id)
         losers = set(group.players.all()) - set(winnerList)
         for loser in losers:
             self.Tournament.participating_players.remove(loser)
+
+    def has_winners_been_decided(self):
+        return self.winners.all().count() == 2
 
 class Score(models.Model):
     player = models.ForeignKey(User, on_delete=models.CASCADE, related_name='Player+')

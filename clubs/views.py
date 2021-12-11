@@ -1,3 +1,4 @@
+import copy
 from django.shortcuts import redirect, render
 from django.views.generic.detail import DetailView
 from .forms import CreateNewTournamentForm, SignUpForm
@@ -10,12 +11,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.views.generic.edit import CreateView
-from .models import Score, Tournament, User, Club
+from .models import Round, Score, Tournament, User, Club
 from django.core.exceptions import ImproperlyConfigured
 from django.views.generic.edit import FormView
 from django.views.generic import ListView
 from django.urls import reverse
-from .Utilities import promote_demote_helper,create_applicant_membership_to_clubs,apply_tournament,switch_user_club,withdraw_tournament,assign_organiser,create_round_and_group_helper
+from .Utilities import promote_demote_helper,create_applicant_membership_to_clubs
+from .Utilities import apply_tournament,switch_user_club
+from .Utilities import withdraw_tournament,assign_organiser,generate_match_helper
 
 def get_club_choice(request):
     """Utility function to return the club name the user has selected."""
@@ -57,30 +60,13 @@ def withdraw_from_tournament(request,tournament_id):
     return withdraw_tournament.manage_tournament_withdrawal(request=request, tournament_id=tournament_id)
 
 @login_required
+def generate_matches(request, tournament_id):
+    return generate_match_helper.help_generate_mathes(request,tournament_id)
+
+@login_required
 def apply_to_club(request, club_name):
     create_applicant_membership_to_clubs.create_applicant_of_club(request=request, club_name=club_name)
     return redirect('club_list')
-
-@login_required
-def generate_matches(request, tournament_id):
-    tournament = Tournament.objects.get(pk = tournament_id)
-    round_or_groups = create_round_and_group_helper.match_creator_helper(tournament)
-    matches = []
-
-    if round_or_groups == None:
-        messages.add_message(request, messages.ERROR, "Cant generate matches, check if results are entered for each matches!")
-        return redirect('tournaments')
-    else:
-        for rod in round_or_groups:
-            rod.createMatches()
-            matches = matches + rod.get_all_matches()
-
-    if len(matches) == 0:
-        messages.add_message(request, messages.ERROR, "There are currently no players in the tournament.")
-        return redirect('tournaments')
-    else:
-        messages.add_message(request, messages.SUCCESS, "Matches have been successfully generated!.")
-        return render(request, 'match_list.html', {'matches': matches})
 
 @login_required
 def password(request):
@@ -280,6 +266,7 @@ class MatchListView(LoginRequiredMixin, ListView):
         tournament_id = self.kwargs['tournament_id']
         tournament = Tournament.objects.get(id=tournament_id)
         context['tournament'] = tournament
+        context['rounds'] = Round.objects.filter(Tournament = tournament)
         try:
             context['current_user_club_name'] = current_user_club_name
             context['current_user_club'] = current_user_club
