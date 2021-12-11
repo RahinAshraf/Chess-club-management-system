@@ -4,6 +4,7 @@ from ..models import User, MembershipType, Club, Tournament
 from django.contrib import messages
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import redirect
+
 def get_subject_user_with_club(request, user_id):
     """This function returns a dictionary of the subject user along with
         the current selection of club in the session and the membership object.

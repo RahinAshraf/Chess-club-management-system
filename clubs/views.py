@@ -220,6 +220,8 @@ class OfficerListView(LoginRequiredMixin, ListView):
         current_user_club_name = self.request.session['club_choice']
         context = super().get_context_data(*args, **kwargs)
         context['current_user'] = current_user
+        tournament_id = self.kwargs['tournament_id']
+        tournament = Tournament.objects.get(id=tournament_id)
         try:
             context['current_user_club_name'] = current_user_club_name
             context['current_user_club'] = current_user_club
@@ -228,6 +230,7 @@ class OfficerListView(LoginRequiredMixin, ListView):
         else:
             context['users'] = current_user_club.get_all_officers_with_types(current_user)
             context['type'] = current_user.get_membership_type_in_club(current_user_club_name)
+            context['tournament'] = tournament
         return context
 
     def get(self, request, *args, **kwargs):
@@ -336,4 +339,3 @@ class CreateNewTournamentView(LoginRequiredMixin,CreateView):
 
     def handle_no_permission(self):
         return redirect('test')
-
