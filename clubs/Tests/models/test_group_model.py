@@ -144,6 +144,6 @@ class TournamentModelTestCase(TestCase):
         self.tournament_of_size_68.participating_players.add(self.user)
         self.tournament_of_size_68.participating_players.add(self.user2)
         self.match.put_score_for_player(round = self.round, score = 0.5,player=self.user) #draws are permissible for tournaments with group stages
-        self.match.put_score_for_player2(round = self.round, score = 0)
+        self.match.put_score_for_player2(round = self.round, score = 0.5)
 
     
