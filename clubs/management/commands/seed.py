@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 from faker import Faker
-from clubs.models import User, Club, MembershipType, Tournament
+from clubs.models import User, Club, MembershipType, Tournament, Match, Round, Score, Group
 from ...Constants import consts
 import random
 from datetime import date, timedelta
@@ -49,6 +49,7 @@ class Command(BaseCommand):
         print('User seeding complete')
 
         self._create_base_tournaments()
+        self._create_groups()
 
         for club in Club.objects.all():
             club_count = 0
@@ -234,6 +235,57 @@ class Command(BaseCommand):
             users = club.get_all_users()
             for i in range (0, random.randint(1, len(users))) :
                 tournament.participating_players.add(random.choice(users))
+            self._create_round(tournament)
+
+    def _create_round(self, tournament):
+        self.round = Round(Tournament = tournament)
+        self.round.save()
+        self.round.createMatches()
+
+    def _create_groups(self):
+        self._create_group(16)
+        self._create_group(32)
+        self._create_group(90)
+
+    def _create_group(self, nbr_users):
+        club_owner = self._create_user(False)
+        club = Club.objects.create(
+            club_owner = club_owner,
+            name = f'{self.faker.last_name()} Chess Club',
+            location = self.faker.city(),
+            mission_statement = self.faker.text(max_nb_chars=200)
+        )
+
+        for i in range(nbr_users):
+            user = self._create_user(False)
+            if random.randint(1, 10) < 3 :
+                type = consts.OFFICER
+            else :
+                type = consts.MEMBER
+
+            MembershipType.objects.create(
+                user = user,
+                club = club,
+                type = type
+            )
+
+        officers = [k for k,v in club.get_all_users_with_types().items() if v == consts.OFFICER]
+        organizer = random.choice(officers)
+        tournament = Tournament.objects.create(
+                club = club,
+                name = f'{self.faker.last_name()} Chess Tournament',
+                description = self.faker.text(max_nb_chars=100),
+                capacity = nbr_users,
+                organising_officer = organizer,
+                deadline_to_apply = date.today() - timedelta(days=random.randint(1, 10))
+        )
+        users = club.get_all_users()
+        for user in users:
+            tournament.participating_players.add(user)
+
+        self.group=Group(Tournament=tournament)
+        self.group.save()
+        self.group.createMatches()
 
     def _email(self, first_name, last_name):
         email = f'{first_name}.{last_name}@example.org'

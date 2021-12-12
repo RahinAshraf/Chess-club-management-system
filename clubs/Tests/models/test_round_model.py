@@ -14,9 +14,9 @@ class TournamentModelTestCase(TestCase):
                     public_bio = 'Hello!!',
                     chess_experience_level = 3,
                     personal_statement = 'I want to play chess!!')
-        self.club = Club.objects.create(club_owner = self.user,name = "Club1.0", location = 'location1', 
+        self.club = Club.objects.create(club_owner = self.user,name = "Club1.0", location = 'location1',
                                         mission_statement = 'We want to allow all to play free chess')
-        
+
         self.user2 = User.objects.create_user(
                     first_name = 'Test',
                     last_name = 'Case',
@@ -45,7 +45,7 @@ class TournamentModelTestCase(TestCase):
                                                     organising_officer = self.officer,
                                                     deadline_to_apply = '2021-12-05 23:59')
         self.Tournament.save()
-        
+
         self.round=Round(Tournament=self.Tournament)
         self.round.save()
 
@@ -70,7 +70,7 @@ class TournamentModelTestCase(TestCase):
                 )
             MembershipType.objects.create(user = user, club = self.club, type = consts.MEMBER)
             self.round.players.add(user)
-            self.Tournament.participating_players.add(user)    
+            self.Tournament.participating_players.add(user)
 
     def _create_test_match_results(self):
         for match in self.round.matches.all():

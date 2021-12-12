@@ -14,9 +14,9 @@ class TournamentModelTestCase(TestCase):
                     public_bio = 'Hello!!',
                     chess_experience_level = 3,
                     personal_statement = 'I want to play chess!!')
-        self.club = Club.objects.create(club_owner = self.user,name = "Club1.0", location = 'location1', 
+        self.club = Club.objects.create(club_owner = self.user,name = "Club1.0", location = 'location1',
                                         mission_statement = 'We want to allow all to play free chess')
-        
+
         self.user2 = User.objects.create_user(
                     first_name = 'Test',
                     last_name = 'Case',
@@ -45,8 +45,8 @@ class TournamentModelTestCase(TestCase):
                                                     organising_officer = self.officer,
                                                     deadline_to_apply = '2021-12-05 23:59')
         self.Tournament.save()
-        
-    
+
+
     def test_valid_tournament(self):
         try:
             self.Tournament.full_clean()
@@ -104,7 +104,7 @@ class TournamentModelTestCase(TestCase):
                     personal_statement = 'I want to play chess!!')
 
        MembershipType.objects.create(club = self.club, user = co_organiser, type = consts.OFFICER)
-       self.Tournament.co_organising_officers.add(co_organiser) 
+       self.Tournament.co_organising_officers.add(co_organiser)
        self.Tournament.participating_players.add(co_organiser)
        self._assert_invalid_tournament()
 
@@ -119,7 +119,7 @@ class TournamentModelTestCase(TestCase):
                     personal_statement = 'I want to play chess!!')
 
         MembershipType.objects.create(club = self.club, user = co_organiser, type = consts.MEMBER)
-        self.Tournament.co_organising_officers.add(co_organiser) 
+        self.Tournament.co_organising_officers.add(co_organiser)
         self._assert_invalid_tournament()
 
     def test_organiser_cannot_be_a_part_of_any_match(self):
@@ -138,7 +138,7 @@ class TournamentModelTestCase(TestCase):
                     personal_statement = 'I want to play chess!!')
 
         MembershipType.objects.create(club = self.club, user = co_organiser, type = consts.MEMBER)
-        self.Tournament.co_organising_officers.add(co_organiser) 
+        self.Tournament.co_organising_officers.add(co_organiser)
         match = Match.objects.create(date = '2021-12-17', player1 = co_organiser, player2 = self.user2)
         self.Tournament.matches.add(match)
         self._assert_invalid_tournament()
