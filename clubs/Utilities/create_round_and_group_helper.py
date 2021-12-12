@@ -137,6 +137,7 @@ def can_generate_matches(tournament):
 
 def create_round_or_groups(tournament):
     number_of_players = tournament.participating_players.all().count()
+    Round.objects.filter(Tournament=tournament).delete()
     if GroupStageCapacity.is_allowed_for_round_creation(number_of_players):
         return list(manage_distribute_players_into_rounds(tournament))
     else:

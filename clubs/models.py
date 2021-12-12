@@ -509,8 +509,12 @@ class Round(models.Model):
         copy_player_list = self.create_copy_of_player_list()
         player_to_score_map={}
         for player in copy_player_list:
-            score_of_player=Score.objects.get(player=player,round=self)
-            player_to_score_map[player] = score_of_player.score
+            try:
+                score_of_player=Score.objects.get(player=player,round=self)
+            except:
+                pass # This pass signifies that the score for this player has not been added and so we should not add it to the player score map.
+            else:
+                player_to_score_map[player] = score_of_player.score
         return player_to_score_map
 
     def has_winners_been_decided(self):

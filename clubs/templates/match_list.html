@@ -17,7 +17,7 @@
             <td>{{match.player1.first_name}}</td>
             <td>{{match.player2.first_name}}</td>
             <td>{{match.date}}</td>
-              {% if request.user == tournament.organising_officer  %}
+              {% if current_user == tournament.organising_officer  %}
                 <td>
                   <div class="dropdown">
                     <a class="nav-link" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
