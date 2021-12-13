@@ -1,0 +1,22 @@
+{% extends 'base_content.html' %}
+{% block content %}
+
+<div class="container">
+  <div class="row">
+    <div class="col-12">
+      <h1>Matches</h1>
+      <table class="table">
+      <tr>
+       <td>Player 1</td>
+       <td>Player 2</td>
+       <td>Date</td>
+      </tr>
+      {% for match in tournament.matches.all %}
+        <tr>
+            <td>{{match.player1.first_name}}</td>
+            <td>{{match.player2.first_name}}</td>
+            <td>{{match.date}}</td>
+        </tr>
+      {% endfor %}
+
+{% endblock %}

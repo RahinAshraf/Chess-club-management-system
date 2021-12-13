@@ -92,17 +92,21 @@ class ClubModelManager(models.Manager):
 
 
 class scoreModelManager(models.Manager):
-    def _is_user_a_part_of_the_same_club(self, player, match):
+    def _is_user_a_part_of_the_same_club(self, player, match, round=None):
         """This function tests whether a user has a score already within a specific match.
         If yes, then it would raise a value error."""
-        if len(Score.objects.filter(player = player).filter(match = match)) >= 1:
+        if round is not None and len(Score.objects.filter(player = player).filter(match = match).filter(round = round)) >= 1:
             raise ValueError('Player cannot have the different scores in same match')
         return False
 
     def create(self, **obj_data):
         player = obj_data['player']
         match = obj_data['match']
-        self._is_user_a_part_of_the_same_club(player,match)
+        try:
+            round = obj_data['round']
+        except:
+            round = None
+        self._is_user_a_part_of_the_same_club(player,match,round)
         score = super().create(**obj_data)
         return score
 
@@ -281,6 +285,13 @@ class MembershipType(models.Model):
             if len(MembershipType.objects.filter(club = self.club).filter(type = consts.CLUB_OWNER)) >= 1:
                 raise ValidationError('There can only be one club owner')
 
+
+
+"""Add some custom validators for the Score model."""
+def validate_scores(value):
+        if value not in scores.score_list:
+            raise ValidationError('Score value used is invalid')
+
 class Match(models.Model):
     id = models.AutoField(primary_key=True)
     player1 = models.ForeignKey(User, on_delete=models.CASCADE, related_name='Player1')
@@ -306,14 +317,21 @@ class Match(models.Model):
         if self.player1 == self.player2:
             raise ValidationError('A player cannot enter a match with themself.')
 
+    def get_all_players(self):
+        """This method returns the players in the match as a list."""
+        list_of_players = []
+        list_of_players.append(self.player1)
+        list_of_players.append(self.player1)
+        return list_of_players
+
     def get_other_player(self,player):
         """This method gives the other player in the match than the one given in the parameters."""
         if self.player1 != player:
             return self.player1
         return self.player2
 
-    def put_score_for_player1(self, round, score):
-        Score.objects.create(player = self.player1, match = self, round = round, score=score)
+    def put_score_for_player(self,round,score,player):
+        Score.objects.create(player = player, match = self, round = round, score=score)
 
     def put_score_for_player2(self, round, score):
         Score.objects.create(player = self.player2, match = self, round = round, score=score)
@@ -329,11 +347,6 @@ class Match(models.Model):
     def save(self, *args, **kwargs):
         self.validate_two_players_are_not_the_same()
         return super().save(*args, **kwargs)
-
-"""Add some custom validators for the Score model."""
-def validate_scores(value):
-        if value not in scores.score_list:
-            raise ValidationError('Score value used is invalid')
 
 
 class Tournament(models.Model):
@@ -455,7 +468,7 @@ class Round(models.Model):
             player_list_copy = set(player_list_copy) - set(choice)
 
     def get_all_matches(self):
-        """Returns all matches"""
+        """Returns all matches as a list."""
         matches = []
         round = Round.objects.get(pk = self.id)
 
@@ -468,7 +481,7 @@ class Round(models.Model):
         newMatch = Match.objects.create(player1 = choices[0], player2 = choices[1], date = timezone.now())
         round=Round.objects.get(pk=self.id)
         round.matches.add(newMatch)
-        self.Tournament.matches.add(newMatch)
+        round.Tournament.matches.add(newMatch)
 
     def create_copy_of_player_list(self):
         round = Round.objects.get(pk=self.id)
@@ -493,26 +506,44 @@ class Round(models.Model):
         self.remove_losers_from_tournament_participant_list(round.winners.all())
 
     def put_winner_in_winner_list(self, score, player, round):
-        if score == scores.win_score:
+        if score == scores.win_score and player not in round.winners.all():
             round.winners.add(player)
 
     def get_player_score_map(self):
         copy_player_list = self.create_copy_of_player_list()
         player_to_score_map={}
         for player in copy_player_list:
-            score_of_player=Score.objects.get(player=player,round=self)
-            player_to_score_map[player] = score_of_player.score
+            try:
+                score_of_player=Score.objects.get(player=player,round=self)
+            except:
+                pass # This pass signifies that the score for this player has not been added and so we should not add it to the player score map.
+            else:
+                player_to_score_map[player] = score_of_player.score
         return player_to_score_map
+
+    def has_winners_been_decided(self):
+        return self.winners.all().count() == self.players.all().count() / 2
+
+    def is_group(self):
+        """Checks if the instance of round is a group."""
+        return issubclass(type(self),Round) and issubclass(type(self),Group)
 
 class Group(Round):
     class Meta:
         proxy = True
 
+    def have_all_matches_been_marked(self,group):
+        for match in group.matches.all():
+            if not match.has_match_been_scored(group):
+                return False
+        return True
+
     def decideWinners(self):
-        score_map=self.get_player_score_map()
         group=Group.objects.get(pk=self.id)
-        self.put_two_best_players(score_map=score_map,group=group)
-        self.remove_losers_from_tournament_participant_list(group.winners.all())
+        if self.have_all_matches_been_marked(group):
+            score_map=self.get_player_score_map()
+            self.put_two_best_players(score_map=score_map,group=group)
+            self.remove_losers_from_tournament_participant_list(group.winners.all())
 
 
     def put_two_best_players(self,score_map,group):
@@ -555,13 +586,16 @@ class Group(Round):
         newMatch = Match.objects.create(player1 = choices[0], player2 = choices[1], date = timezone.now())
         group=Group.objects.get(pk=self.id)
         group.matches.add(newMatch)
-        self.Tournament.matches.add(newMatch)
+        group.Tournament.matches.add(newMatch)
 
     def remove_losers_from_tournament_participant_list(self,winnerList):
         group = Group.objects.get(id = self.id)
         losers = set(group.players.all()) - set(winnerList)
         for loser in losers:
             self.Tournament.participating_players.remove(loser)
+
+    def has_winners_been_decided(self):
+        return self.winners.all().count() == 2
 
 class Score(models.Model):
     player = models.ForeignKey(User, on_delete=models.CASCADE, related_name='Player+')

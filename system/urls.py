@@ -30,6 +30,7 @@ urlpatterns = [
     path('clubs/', views.ClubListView.as_view(), name='club_list'),
     path('officer_list/<int:tournament_id>/', views.OfficerListView.as_view(), name='officer_list'),
     path('match_list/<int:tournament_id>/', views.MatchListView.as_view(), name='match_list'),
+    path('all_match_list/<int:tournament_id>/', views.AllMatchListView.as_view(), name='all_match_list'),
     path('switch_club/', views.switch_club, name='switch_club'),
     path('promote/<int:user_id>/', views.promote, name='promote'),
     path('apply_to_club/<str:club_name>/', views.apply_to_club, name='apply_to_club'),
@@ -41,5 +42,7 @@ urlpatterns = [
     path('create_new_tournament/', views.CreateNewTournamentView.as_view(), name='create_tournament'),
     path('participate_in_tournament/<int:tournament_id>/', views.participate_in_tournament, name='participate_in_tournament'),
     path('assign_coorganiser/<int:tournament_id>/<int:user_id>/', views.assign_coorganiser, name='assign_coorganiser'),
+    path('score_player/<int:round_id>/<int:match_id>/<int:player_id>/',views.score_player,name='score_player'),
+    path('draw_match/<int:round_id>/<int:match_id>/',views.draw_match,name='draw_match'),
     path('generate_matches/<int:tournament_id>/', views.generate_matches, name='generate_matches')
 ]

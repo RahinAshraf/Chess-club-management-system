@@ -107,12 +107,13 @@ def check_winners_for_a_round(round):
     return False
 
 def check_winners_for_a_group(group):
-    if group.winners.all().count()==2:
-        return True
-    return False
+    for match in group.matches.all():
+        if not match.has_match_been_scored(group):
+            return False
+    return True
 
 def manage_round_and_group_winners(round):
-    if isinstance(round,Group):
+    if issubclass(type(round),Round):
         return check_winners_for_a_group(round)
     return check_winners_for_a_round(round)
 
@@ -137,6 +138,7 @@ def can_generate_matches(tournament):
 
 def create_round_or_groups(tournament):
     number_of_players = tournament.participating_players.all().count()
+    Round.objects.filter(Tournament=tournament).delete()
     if GroupStageCapacity.is_allowed_for_round_creation(number_of_players):
         return list(manage_distribute_players_into_rounds(tournament))
     else:

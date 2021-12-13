@@ -1,3 +1,5 @@
+import copy
+from math import log
 from django.shortcuts import redirect, render
 from django.views.generic.detail import DetailView
 from .forms import CreateNewTournamentForm, SignUpForm
@@ -10,12 +12,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.views.generic.edit import CreateView
-from .models import Score, Tournament, User, Club
+from .models import Match, Round, Score, Tournament, User, Club
 from django.core.exceptions import ImproperlyConfigured
 from django.views.generic.edit import FormView
 from django.views.generic import ListView
 from django.urls import reverse
-from .Utilities import promote_demote_helper,create_applicant_membership_to_clubs,apply_tournament,switch_user_club,withdraw_tournament,assign_organiser,create_round_and_group_helper
+from .Utilities import promote_demote_helper,create_applicant_membership_to_clubs
+from .Utilities import apply_tournament,switch_user_club
+from .Utilities import withdraw_tournament,assign_organiser,generate_match_helper,score_player_helper
 
 def get_club_choice(request):
     """Utility function to return the club name the user has selected."""
@@ -57,30 +61,21 @@ def withdraw_from_tournament(request,tournament_id):
     return withdraw_tournament.manage_tournament_withdrawal(request=request, tournament_id=tournament_id)
 
 @login_required
+def generate_matches(request, tournament_id):
+    return generate_match_helper.help_generate_mathes(request,tournament_id)
+
+@login_required
+def score_player(request,round_id,match_id,player_id):
+    return score_player_helper.help_score_player(request,round_id,match_id,player_id)
+
+@login_required
+def draw_match(request,round_id,match_id):
+    return score_player_helper.help_draw_match(request,round_id,match_id)
+
+@login_required
 def apply_to_club(request, club_name):
     create_applicant_membership_to_clubs.create_applicant_of_club(request=request, club_name=club_name)
     return redirect('club_list')
-
-@login_required
-def generate_matches(request, tournament_id):
-    tournament = Tournament.objects.get(pk = tournament_id)
-    round_or_groups = create_round_and_group_helper.match_creator_helper(tournament)
-    matches = []
-
-    if round_or_groups == None:
-        messages.add_message(request, messages.ERROR, "Cant generate matches, check if results are entered for each matches!")
-        return redirect('tournaments')
-    else:
-        for rod in round_or_groups:
-            rod.createMatches()
-            matches = matches + rod.get_all_matches()
-
-    if len(matches) == 0:
-        messages.add_message(request, messages.ERROR, "There are currently no players in the tournament.")
-        return redirect('tournaments')
-    else:
-        messages.add_message(request, messages.SUCCESS, "Matches have been successfully generated!.")
-        return render(request, 'match_list.html', {'matches': matches})
 
 @login_required
 def password(request):
@@ -264,7 +259,7 @@ class OfficerListView(LoginRequiredMixin, ListView):
         return redirect('test')
 
 class MatchListView(LoginRequiredMixin, ListView):
-    """View that shows a list of matches."""
+    """View that shows a list of ongoing matches."""
     model = User
     template_name  = "match_list.html"
     context_object_name = "users"
@@ -280,6 +275,7 @@ class MatchListView(LoginRequiredMixin, ListView):
         tournament_id = self.kwargs['tournament_id']
         tournament = Tournament.objects.get(id=tournament_id)
         context['tournament'] = tournament
+        context['rounds'] = Round.objects.filter(Tournament = tournament)
         try:
             context['current_user_club_name'] = current_user_club_name
             context['current_user_club'] = current_user_club
@@ -295,6 +291,33 @@ class MatchListView(LoginRequiredMixin, ListView):
             return super().get(request, *args, **kwargs)
         except Http404:
             return self.redirect_url('test')
+
+    def redirect_url(self, url):
+        return redirect('test')
+
+class AllMatchListView(LoginRequiredMixin, ListView):
+    """View that shows a list of matches."""
+    model =  User
+    template_name  = "all_match_list.html"
+    context_object_name = "users"
+    pk_url_kwarg = 'user_id'
+
+    def get(self, request, *args, **kwargs):
+        """Handle get   request, and redirect   to user_list if user_id invalid."""
+        try:
+            return super().get(request, *args, **kwargs)
+        except Http404:
+            return self.redirect_url('test')
+
+    def get_context_data(self, *args, **kwargs):
+        """Generate content to be displayed in the template."""
+        current_user = self.request.user
+        context = super().get_context_data(*args, **kwargs)
+        context['current_user'] = current_user
+        tournament_id = self.kwargs['tournament_id']
+        tournament = Tournament.objects.get(id=tournament_id)
+        context['tournament'] = tournament
+        return context
 
     def redirect_url(self, url):
         return redirect('test')

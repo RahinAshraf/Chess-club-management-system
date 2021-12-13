@@ -1,15 +1,6 @@
 {% extends 'base_content.html' %}
 {% block content %}
 
-
-<!-- Style the 'create a new club button' to make it stand out from the rest of the buttons-->
-<style>
-#new_match {
-    background-color: #008000 !important;
-    border-color: #008000 !important;
-}
-</style>
-
 <div class="container">
   <div class="row">
     <div class="col-12">
@@ -20,28 +11,38 @@
        <td>Player 2</td>
        <td>Date</td>
       </tr>
-        {% for match in matches %}
+      {% for round in rounds %}
+        {% for match in round.matches.all %}
           <tr>
             <td>{{match.player1.first_name}}</td>
             <td>{{match.player2.first_name}}</td>
             <td>{{match.date}}</td>
-            {% if request.user == tournament.organising_officer  %}
-              <td>
-                <div class="dropdown">
-                  <a class="nav-link" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <button href="#" class="btn btn-primary btn-bg dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      Result
-                    </button>
-                  </a>
-                  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <li><a class="dropdown-item" href="#" role="button" id="score_of_player_1">Score for Player 1</a></li>
-                    <li><a class="dropdown-item" href="#" role="button" id="score_of_player_1">Score for Player 2</a></li>
-                  </ul>
-                </div>
-              </td>
-            {% endif %}
+              {% if current_user == tournament.organising_officer  %}
+                <td>
+                  <div class="dropdown">
+                    <a class="nav-link" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      <button href="#" class="btn btn-primary btn-bg dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Result
+                      </button>
+                    </a>
+                    {% if round.is_group %}
+                      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <li><a class="dropdown-item" href="{% url 'score_player' round.id match.id match.player1.id %}" role="button" id="score_of_player_1">Player 1</a></li>
+                        <li><a class="dropdown-item" href="{% url 'score_player' round.id match.id match.player2.id %}" role="button" id="score_of_player_2">Player 2</a></li>
+                        <li><a class="dropdown-item" href="{% url 'draw_match' round.id match.id %}" role="button" id="draw">Draw</a></li>
+                      </ul>
+                    {% else %}
+                      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <li><a class="dropdown-item" href="{% url 'score_player' round.id match.id match.player1.id %}" role="button" id="scoreofplayer1">Player 1</a></li>
+                        <li><a class="dropdown-item" href="{% url 'score_player' round.id match.id match.player2.id %}" role="button" id="scoreofplayer2">Player 2</a></li>
+                      </ul>
+                    {% endif %}
+                  </div>
+                </td>
+              {% endif %}
           </tr>
         {% endfor %}
+      {% endfor %}
       </table>
     </div>
   </div>
