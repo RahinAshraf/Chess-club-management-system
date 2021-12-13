@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.views.generic.edit import CreateView
-from .models import Round, Score, Tournament, User, Club
+from .models import Match, Round, Score, Tournament, User, Club
 from django.core.exceptions import ImproperlyConfigured
 from django.views.generic.edit import FormView
 from django.views.generic import ListView
@@ -259,7 +259,7 @@ class OfficerListView(LoginRequiredMixin, ListView):
         return redirect('test')
 
 class MatchListView(LoginRequiredMixin, ListView):
-    """View that shows a list of matches."""
+    """View that shows a list of ongoing matches."""
     model = User
     template_name  = "match_list.html"
     context_object_name = "users"
@@ -291,6 +291,33 @@ class MatchListView(LoginRequiredMixin, ListView):
             return super().get(request, *args, **kwargs)
         except Http404:
             return self.redirect_url('test')
+
+    def redirect_url(self, url):
+        return redirect('test')
+
+class AllMatchListView(LoginRequiredMixin, ListView):
+    """View that shows a list of matches."""
+    model =  User
+    template_name  = "all_match_list.html"
+    context_object_name = "users"
+    pk_url_kwarg = 'user_id'
+
+    def get(self, request, *args, **kwargs):
+        """Handle get   request, and redirect   to user_list if user_id invalid."""
+        try:
+            return super().get(request, *args, **kwargs)
+        except Http404:
+            return self.redirect_url('test')
+
+    def get_context_data(self, *args, **kwargs):
+        """Generate content to be displayed in the template."""
+        current_user = self.request.user
+        context = super().get_context_data(*args, **kwargs)
+        context['current_user'] = current_user
+        tournament_id = self.kwargs['tournament_id']
+        tournament = Tournament.objects.get(id=tournament_id)
+        context['tournament'] = tournament
+        return context
 
     def redirect_url(self, url):
         return redirect('test')

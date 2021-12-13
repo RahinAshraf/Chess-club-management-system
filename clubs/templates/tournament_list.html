@@ -24,6 +24,7 @@
           <td><b>Name</b></td>
           <td><b>Description</b><td>
           <td><b>Deadline To Apply</b></td>
+          <td><b>Current Players</b></td>
           {% if type == 'officer' %}
             <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'create_tournament' %}" role="button" id="new_tournament">Create a new Tournament</a></td>
           {% endif %}
@@ -34,6 +35,7 @@
           <td>{{tournament.description}}</td>
           <td></td>
           <td>{{tournament.deadline_to_apply}}</td>
+          <td>{{tournament.participating_players.all.count}}</td>
             {% if request.user == tournament.organising_officer  %}
             <td>
               <div class="dropdown">
@@ -45,7 +47,8 @@
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                   <li><a class="dropdown-item" href="{% url 'officer_list' tournament.id %}" role="button" id="officer_list">Assign co-organisers</a></li>
                   <li><a class="dropdown-item" href="{% url 'generate_matches' tournament.id %}" role="button" id="officer_list">Generate Matches</a></li>
-                  <li><a class="dropdown-item" href="{% url 'match_list' tournament.id %}" role="button" id="officer_list">View Matches</a></li>
+                  <li><a class="dropdown-item" href="{% url 'match_list' tournament.id %}" role="button" id="officer_list">View Current Matches</a></li>
+                  <li><a class="dropdown-item" href="{% url 'all_match_list' tournament.id %}" role="button" id="officer_list">View All Matches</a></li>
                 </ul>
               </div>
             </td>
@@ -58,7 +61,8 @@
                   </button>
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                  <li><a class="dropdown-item" href="{% url 'match_list' tournament.id %}" role="button">View Matches</a></li>
+                  <li><a class="dropdown-item" href="{% url 'match_list' tournament.id %}" role="button">View Current Matches</a></li>
+                  <li><a class="dropdown-item" href="{% url 'all_match_list' tournament.id %}" role="button" id="officer_list">View All Matches</a></li>
                   {% if request.user|officer:tournament.id %}
                     <li><a class="dropdown-item" href="{% url 'withdraw_from_tournament' tournament.id %}" role="button">Withdraw</a></li>
                   {% else%}

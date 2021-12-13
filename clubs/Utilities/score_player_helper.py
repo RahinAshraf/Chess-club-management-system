@@ -40,10 +40,11 @@ def score_player(request,round,match,player):
     round.decideWinners()
     return process_success_in_scoring(request,round)
 
-def draw_match(request,round,match,player):
-    player_list_for_match = match.get_all_players()
-    for player in player_list_for_match:
-        match.put_score_for_player(round,scores.draw_score,player)
+def draw_match(request,round,match):
+    player1 = match.player1
+    player2 = match.player2
+    match.put_score_for_player(round,scores.draw_score,player1)
+    match.put_score_for_player(round,scores.draw_score,player2)
     round.decideWinners()
     return process_success_in_scoring(request,round)
 
@@ -61,3 +62,5 @@ def help_draw_match(request,round_id,match_id):
     match = get_match(match_id)
     if has_match_been_scored(match,round):
        return process_already_scored_matches(request,round)
+    else:
+        return draw_match(request,round,match)

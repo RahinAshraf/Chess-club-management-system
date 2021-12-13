@@ -107,12 +107,13 @@ def check_winners_for_a_round(round):
     return False
 
 def check_winners_for_a_group(group):
-    if group.winners.all().count()==2:
-        return True
-    return False
+    for match in group.matches.all():
+        if not match.has_match_been_scored(group):
+            return False
+    return True
 
 def manage_round_and_group_winners(round):
-    if isinstance(round,Group):
+    if issubclass(type(round),Round):
         return check_winners_for_a_group(round)
     return check_winners_for_a_round(round)
 

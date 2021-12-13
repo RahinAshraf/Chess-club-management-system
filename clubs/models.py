@@ -92,17 +92,21 @@ class ClubModelManager(models.Manager):
 
 
 class scoreModelManager(models.Manager):
-    def _is_user_a_part_of_the_same_club(self, player, match):
+    def _is_user_a_part_of_the_same_club(self, player, match, round=None):
         """This function tests whether a user has a score already within a specific match.
         If yes, then it would raise a value error."""
-        if len(Score.objects.filter(player = player).filter(match = match)) >= 1:
+        if round is not None and len(Score.objects.filter(player = player).filter(match = match).filter(round = round)) >= 1:
             raise ValueError('Player cannot have the different scores in same match')
         return False
 
     def create(self, **obj_data):
         player = obj_data['player']
         match = obj_data['match']
-        self._is_user_a_part_of_the_same_club(player,match)
+        try:
+            round = obj_data['round']
+        except:
+            round = None
+        self._is_user_a_part_of_the_same_club(player,match,round)
         score = super().create(**obj_data)
         return score
 
@@ -522,7 +526,7 @@ class Round(models.Model):
 
     def is_group(self):
         """Checks if the instance of round is a group."""
-        return isinstance(self,Group)
+        return issubclass(type(self),Round) and issubclass(type(self),Group)
 
 class Group(Round):
     class Meta:

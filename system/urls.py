@@ -30,6 +30,7 @@ urlpatterns = [
     path('clubs/', views.ClubListView.as_view(), name='club_list'),
     path('officer_list/<int:tournament_id>/', views.OfficerListView.as_view(), name='officer_list'),
     path('match_list/<int:tournament_id>/', views.MatchListView.as_view(), name='match_list'),
+    path('all_match_list/<int:tournament_id>/', views.AllMatchListView.as_view(), name='all_match_list'),
     path('switch_club/', views.switch_club, name='switch_club'),
     path('promote/<int:user_id>/', views.promote, name='promote'),
     path('apply_to_club/<str:club_name>/', views.apply_to_club, name='apply_to_club'),
