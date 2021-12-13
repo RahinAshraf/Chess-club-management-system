@@ -160,7 +160,7 @@ class Command(BaseCommand):
             organising_officer = User.objects.get(email = 'val@example.org'),
             deadline_to_apply = date.today() + timedelta(days=1)
         )
-
+        self._create_round(tournament1)
 
         tournament2 = Tournament.objects.create(
             club = club,
@@ -170,6 +170,7 @@ class Command(BaseCommand):
             organising_officer = User.objects.get(email = 'val@example.org'),
             deadline_to_apply = date.today() - timedelta(days=1)
         )
+        self._create_round(tournament2)
 
         users = club.get_all_users()
         tournament2.participating_players.add(User.objects.get(email = 'jeb@example.org'))
