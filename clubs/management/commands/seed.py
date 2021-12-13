@@ -4,6 +4,7 @@ from clubs.models import User, Club, MembershipType, Tournament, Match, Round, S
 from ...Constants import consts
 import random
 from datetime import date, timedelta
+from ...Utilities import generate_match_helper
 
 class UniqueFaker(Faker):
     """
@@ -160,7 +161,7 @@ class Command(BaseCommand):
             organising_officer = User.objects.get(email = 'val@example.org'),
             deadline_to_apply = date.today() + timedelta(days=1)
         )
-        self._create_round(tournament1)
+        self._create_matches(tournament1.id)
 
         tournament2 = Tournament.objects.create(
             club = club,
@@ -170,7 +171,7 @@ class Command(BaseCommand):
             organising_officer = User.objects.get(email = 'val@example.org'),
             deadline_to_apply = date.today() - timedelta(days=1)
         )
-        self._create_round(tournament2)
+        self._create_matches(tournament2.id)
 
         users = club.get_all_users()
         tournament2.participating_players.add(User.objects.get(email = 'jeb@example.org'))
@@ -236,12 +237,7 @@ class Command(BaseCommand):
             users = club.get_all_users()
             for i in range (0, random.randint(1, len(users))) :
                 tournament.participating_players.add(random.choice(users))
-            self._create_round(tournament)
-
-    def _create_round(self, tournament):
-        self.round = Round(Tournament = tournament)
-        self.round.save()
-        self.round.createMatches()
+            self._create_matches(tournament.id)
 
     def _create_groups(self):
         self._create_group(16)
@@ -284,10 +280,11 @@ class Command(BaseCommand):
         for user in users:
             tournament.participating_players.add(user)
 
-        self.group=Group(Tournament=tournament)
-        self.group.save()
-        self.group.createMatches()
+        self._create_matches(tournament.id)
 
     def _email(self, first_name, last_name):
         email = f'{first_name}.{last_name}@example.org'
         return email
+
+    def _create_matches(self, request, tournament):
+        generate_match_helper.help_generate_mathes(request, tournament)
