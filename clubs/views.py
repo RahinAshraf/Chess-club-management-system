@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render
 from django.views.generic.detail import DetailView
 from .forms import CreateNewTournamentForm, SignUpForm
 from django.contrib.auth import login, logout
+from django.conf import settings
 from django.views.generic.edit import UpdateView
 from .forms import LogInForm, UserForm, PasswordForm, CreateNewClubForm
 from django.contrib import messages
@@ -12,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.views.generic.edit import CreateView
-from .models import Match, Round, Score, Tournament, User, Club
+from .models import Match, Round, Score, Tournament, User, Club, MembershipType
 from django.core.exceptions import ImproperlyConfigured
 from django.views.generic.edit import FormView
 from django.views.generic import ListView
@@ -22,8 +23,10 @@ from .Utilities import apply_tournament,switch_user_club
 from .Utilities import withdraw_tournament,assign_organiser,generate_match_helper,score_player_helper
 
 def get_club_choice(request):
-    """Utility function to return the club name the user has selected."""
+    """Utility function to return the name of the club the user has selected."""
     return request.session['club_choice']
+
+    #this is a comment from rahin
 
 @login_required
 def promote(request, user_id):
@@ -106,7 +109,7 @@ class LoginProhibitedMixin:
         else:
             return self.redirect_when_logged_in_url
 
-class TestView(LoginRequiredMixin,View):
+class UserProfileView(LoginRequiredMixin,View):
     http_method_names = ['get']
 
     def get(self, request):
@@ -116,13 +119,13 @@ class TestView(LoginRequiredMixin,View):
            self.club = request.session['club_choice']
            self.membership_type = request.user.get_membership_type_in_club(self.club)
        except:
-            render(request, 'test.html', {'club':None, 'membership_type':None})
-       return render(request, 'test.html', {'club':self.club, 'membership_type':self.membership_type})
+            render(request, 'user_profile.html', {'club':None, 'membership_type':None})
+       return render(request, 'user_profile.html', {'club':self.club, 'membership_type':self.membership_type})
 
 class HomeView(LoginProhibitedMixin,View):
     http_method_names = ['get']
 
-    redirect_when_logged_in_url = 'test'
+    redirect_when_logged_in_url = 'user_profile'
 
     def get(self, request):
         return render(request, 'home.html')
@@ -132,7 +135,7 @@ class LogInView(LoginProhibitedMixin,View):
 
     http_method_names = ['get', 'post']
 
-    redirect_when_logged_in_url = 'test'
+    redirect_when_logged_in_url = 'user_profile'
 
     def get(self, request):
         """ Display Log In template. """
@@ -142,7 +145,7 @@ class LogInView(LoginProhibitedMixin,View):
     def post(self, request):
         """Handle Log In attempt."""
         form = LogInForm(request.POST)
-        self.next = request.POST.get('next') or 'test'
+        self.next = request.POST.get('next') or 'user_profile'
         user = form.get_user()
         if user is not None:
             login(request, user)
@@ -160,7 +163,7 @@ class SignUpView(LoginProhibitedMixin, FormView):
 
     form_class = SignUpForm
     template_name = "sign_up.html"
-    redirect_when_logged_in_url = 'test'
+    redirect_when_logged_in_url = 'user_profile'
 
     def form_valid(self, form):
         self.object = form.save()
@@ -168,7 +171,7 @@ class SignUpView(LoginProhibitedMixin, FormView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse('test')
+        return reverse('user_profile')
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     """View to update logged-in user's profile."""
@@ -185,41 +188,51 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         """Return redirect URL after successful update."""
         messages.add_message(self.request, messages.SUCCESS, "Profile updated!")
-        return reverse('test')
+        return reverse('user_profile')
 
 class UserListView (LoginRequiredMixin, ListView):
     """View that shows a list of all users."""
-    model = User
+
+    model = MembershipType
     template_name  = "user_list.html"
     context_object_name = "users"
-    pk_url_kwarg = 'user_id'
+    paginate_by = settings.USERS_PER_PAGE
 
     def get_context_data(self, *args, **kwargs):
         """Generate content to be displayed in the template."""
+
         current_user = self.request.user
         current_user_club = Club.objects.get(pk = self.request.session['club_choice'])
         current_user_club_name = self.request.session['club_choice']
+
         context = super().get_context_data(*args, **kwargs)
+
         context['current_user'] = current_user
         try:
             context['current_user_club_name'] = current_user_club_name
             context['current_user_club'] = current_user_club
         except:
-            return self.redirect_url('test')
+            return self.redirect_url('user_profile')
         else:
-            context['users'] = current_user_club.get_all_users_with_types()
             context['type'] = current_user.get_membership_type_in_club(current_user_club_name)
         return context
+    
+    def get_queryset(self):
+        current_user_club = Club.objects.get(pk = self.request.session['club_choice'])
+        return MembershipType.objects.filter(club = current_user_club).order_by('user__last_name', 'user__first_name')
 
     def get(self, request, *args, **kwargs):
-        """Handle get   request, and redirect   to user_list if user_id invalid."""
+        """Handle get request, and redirect to user_list if user_id invalid."""
         try:
+            current_user_club_name = self.request.session['club_choice']
+            if current_user_club_name is None:
+                return self.redirect_url('test')
             return super().get(request, *args, **kwargs)
         except Http404:
-            return self.redirect_url('test')
+            return self.redirect_url('user_profile')
 
     def redirect_url(self, url):
-        return redirect('test')
+        return redirect('user_profile')
 
 class OfficerListView(LoginRequiredMixin, ListView):
     """View that shows a list of all officers."""
@@ -241,7 +254,7 @@ class OfficerListView(LoginRequiredMixin, ListView):
             context['current_user_club_name'] = current_user_club_name
             context['current_user_club'] = current_user_club
         except:
-            return self.redirect_url('test')
+            return self.redirect_url('user_profile')
         else:
             context['users'] = current_user_club.get_all_officers_with_types(current_user)
             context['type'] = current_user.get_membership_type_in_club(current_user_club_name)
@@ -253,10 +266,10 @@ class OfficerListView(LoginRequiredMixin, ListView):
         try:
             return super().get(request, *args, **kwargs)
         except Http404:
-            return self.redirect_url('test')
+            return self.redirect_url('user_profile')
 
     def redirect_url(self, url):
-        return redirect('test')
+        return redirect('user_profile')
 
 class MatchListView(LoginRequiredMixin, ListView):
     """View that shows a list of ongoing matches."""
@@ -280,7 +293,7 @@ class MatchListView(LoginRequiredMixin, ListView):
             context['current_user_club_name'] = current_user_club_name
             context['current_user_club'] = current_user_club
         except:
-            return self.redirect_url('test')
+            return self.redirect_url('user_profile')
         else:
             context['matches'] =tournament.get_all_matches()
         return context
@@ -290,10 +303,10 @@ class MatchListView(LoginRequiredMixin, ListView):
         try:
             return super().get(request, *args, **kwargs)
         except Http404:
-            return self.redirect_url('test')
+            return self.redirect_url('user_profile')
 
     def redirect_url(self, url):
-        return redirect('test')
+        return redirect('user_profile')
 
 class AllMatchListView(LoginRequiredMixin, ListView):
     """View that shows a list of matches."""
@@ -307,7 +320,7 @@ class AllMatchListView(LoginRequiredMixin, ListView):
         try:
             return super().get(request, *args, **kwargs)
         except Http404:
-            return self.redirect_url('test')
+            return self.redirect_url('user_profile')
 
     def get_context_data(self, *args, **kwargs):
         """Generate content to be displayed in the template."""
@@ -320,7 +333,7 @@ class AllMatchListView(LoginRequiredMixin, ListView):
         return context
 
     def redirect_url(self, url):
-        return redirect('test')
+        return redirect('user_profile')
 
 class ClubListView(LoginRequiredMixin, ListView):
     """View that shows a list of all clubs."""
@@ -356,7 +369,7 @@ class CreateNewClubView(LoginRequiredMixin,CreateView):
         return reverse('club_list')
 
     def handle_no_permission(self):
-        return redirect('test')
+        return redirect('user_profile')
 
 class TournamentListView(LoginRequiredMixin, ListView):
     """View that shows a list of all tournaments."""
@@ -380,7 +393,7 @@ class TournamentListView(LoginRequiredMixin, ListView):
             context['current_user_club_name'] = current_user_club_name
             context['current_user_club'] = current_user_club
         except:
-            return self.redirect_url('test')
+            return self.redirect_url('user_profile')
         else:
             context['tournaments'] = tournaments
             context['type'] = current_user.get_membership_type_in_club(current_user_club_name)
@@ -392,10 +405,10 @@ class TournamentListView(LoginRequiredMixin, ListView):
         try:
             return super().get(request, *args, **kwargs)
         except Http404:
-            return self.redirect_url('test')
+            return self.redirect_url('user_profile')
 
     def redirect_url(self, url):
-        return redirect('test')
+        return redirect('user_profile')
 
 
 class CreateNewTournamentView(LoginRequiredMixin,CreateView):
@@ -417,4 +430,4 @@ class CreateNewTournamentView(LoginRequiredMixin,CreateView):
         return reverse('tournaments')
 
     def handle_no_permission(self):
-        return redirect('test')
+        return redirect('user_profile')

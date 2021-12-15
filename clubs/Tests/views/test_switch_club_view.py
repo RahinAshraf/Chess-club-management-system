@@ -21,11 +21,11 @@ class SwitchClubViewTestCase(TestCase):
             mission_statement = 'We want to allow all to play free chess')
 
         self.client.login(email=self.owner.email, password='Pass123')
-        self.client.get('test/', follow = True)
+        self.client.get('user_profile/', follow = True)
 
     def test_switch_club(self):
         response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
-        response_url = reverse('test')
+        response_url = reverse('user_profile')
         reponse_request = response.wsgi_request
 
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
