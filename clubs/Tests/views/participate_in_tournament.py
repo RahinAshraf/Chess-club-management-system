@@ -6,7 +6,7 @@ from ...Constants import consts
 from django.contrib import messages
 
 class ParticipateInTournament(TestCase):
-
+    """ Unit tests of the participate in tournament methods """
     def setUp(self):
         self.user = User.objects.create_user(
                     first_name = 'Test',
@@ -40,6 +40,7 @@ class ParticipateInTournament(TestCase):
 
 
     def test_successful_participating_in_tournament(self):
+        """" Test case for successful participation of tournament when all conditions are satisifed """
         self.client.login(email=self.officer.email, password='Password123')
         self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         create_tournament = reverse('create_tournament')
@@ -64,6 +65,7 @@ class ParticipateInTournament(TestCase):
         self.assertEqual(messages_list[0].level, messages.SUCCESS)
 
     def test_unsuccessful_participating_in_tournament_due_to_deadline(self):
+        """ Test case for unsuccessful participation of tournament when the deadline has passed """
         self.client.login(email=self.officer.email, password='Password123')
         self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         create_tournament = reverse('create_tournament')
@@ -96,6 +98,7 @@ class ParticipateInTournament(TestCase):
         self.assertEqual(messages_list[0].level, messages.ERROR)
 
     def test_unsuccessful_creation_of_tournament_due_to_capacity(self):
+        """ Test case for unsuccessful participation of tournament when reaches the limit of the capacity """
         self.client.login(email=self.officer.email, password='Password123')
         response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         create_tournament = reverse('create_tournament')

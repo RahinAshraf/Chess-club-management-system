@@ -6,7 +6,7 @@ from ...Constants import consts
 from django.contrib import messages
 
 class ParticipateInTournament(TestCase):
-
+    """ Unit tests of withdraw from tournament"""
     def setUp(self):
         self.user = User.objects.create_user(
                     first_name = 'Test',
@@ -39,6 +39,8 @@ class ParticipateInTournament(TestCase):
         }
 
     def test_successful_withdraw_from_tournament(self):
+        """ Test case for successfull withdraw from the tournament when required
+            conditions are satisifed """
         self.client.login(email=self.officer.email, password='Password123')
         self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         create_tournament = reverse('create_tournament')
@@ -69,6 +71,8 @@ class ParticipateInTournament(TestCase):
         self.assertEqual(messages_list[0].level, messages.SUCCESS)
 
     def test_unsuccessful_withdraw_from_tournament_due_to_deadline(self):
+        """ Test case for unsuccessfull withdraw from the tournament when the
+            deadline is passed"""
         self.client.login(email=self.officer.email, password='Password123')
         self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         create_tournament = reverse('create_tournament')

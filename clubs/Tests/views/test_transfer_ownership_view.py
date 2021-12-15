@@ -5,7 +5,7 @@ from ...Constants import consts
 from ...models import User,MembershipType,Club
 
 class transferOwnershipViewTestCase(TestCase):
-
+    """ Unit tests of transfer club owner's ownership """
     def setUp(self):
         self.club_owner = User.objects.create_user(
             email="clubOwner@example.org",
@@ -25,7 +25,7 @@ class transferOwnershipViewTestCase(TestCase):
             chess_experience_level=1,
             personal_statement="officerPersonal",
         )
-        self.club = Club.objects.create(club_owner = self.club_owner,name = "Club1", location = 'location1', 
+        self.club = Club.objects.create(club_owner = self.club_owner,name = "Club1", location = 'location1',
         mission_statement = 'We want to allow all to play free chess')
 
         MembershipType.objects.create(user=self.officer,type=consts.OFFICER, club=self.club)
@@ -35,9 +35,13 @@ class transferOwnershipViewTestCase(TestCase):
         self.url = reverse("transfer_ownership",kwargs={"user_id":self.officer.pk})
 
     def test_transfer_ownership_url(self):
+        """ Test case to check if the redirected url is equivalent to the
+            expected url for transfering the ownership """
         self.assertEqual(self.url, "/transfer_ownership/" + str(self.officer.pk) + "/")
 
     def test_transfer_ownership_successful(self):
+        """ Test case for successfull transfer of ownership when all conditions
+            in a valid state """
         officerType = MembershipType.objects.filter(user = self.officer)[0].type
         self.assertEqual(officerType, consts.OFFICER)
 
@@ -55,6 +59,8 @@ class transferOwnershipViewTestCase(TestCase):
         self.assertEqual(messages_list[0].level, messages.SUCCESS)
 
     def test_transfer_nonexisting_user(self):
+        """ Test case for unsuccessfull transfer of ownership when the request user
+            attempts to transfer the ownership to a non-existing user """
         userLength = len(User.objects.all())
         self.url = reverse("transfer_ownership",kwargs={"user_id": userLength+1})
 
@@ -69,6 +75,8 @@ class transferOwnershipViewTestCase(TestCase):
         self.assertEqual(messages_list[0].level, messages.ERROR)
 
     def test_cannot_transfer_ownership_to_member(self):
+        """ Test case for unsuccessfull transfer of ownership when the request user
+            attempts to transfer the ownership to a member instead of an officer """
         officerMembership = MembershipType.objects.get(user = self.officer)
         officerMembership.type = "member"
         officerMembership.save()

@@ -216,7 +216,7 @@ class UserListView (LoginRequiredMixin, ListView):
         else:
             context['type'] = current_user.get_membership_type_in_club(current_user_club_name)
         return context
-    
+
     def get_queryset(self):
         current_user_club = Club.objects.get(pk = self.request.session['club_choice'])
         return MembershipType.objects.filter(club = current_user_club).order_by('user__last_name', 'user__first_name')
@@ -353,6 +353,7 @@ class ClubListView(LoginRequiredMixin, ListView):
         return context
 
 class CreateNewClubView(LoginRequiredMixin,CreateView):
+    """View for creating a new club """
     model = Club
     template_name = 'create_club.html'
     form_class = CreateNewClubForm
@@ -412,6 +413,7 @@ class TournamentListView(LoginRequiredMixin, ListView):
 
 
 class CreateNewTournamentView(LoginRequiredMixin,CreateView):
+    """View for creating a new tournament."""
     model = Tournament
     template_name = 'create_tournament.html'
     form_class = CreateNewTournamentForm

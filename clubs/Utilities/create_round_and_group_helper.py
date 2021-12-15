@@ -3,16 +3,21 @@ from ..Constants import GroupStageCapacity
 import math
 import random
 import copy
+
 def randomly_choose_players_from_a_set(player_set):
+    """ Returns a random list a number which coresponds to the players in the
+        given set """
     return random.sample(player_set,len(player_set)-1)
 
 def get_copy_of_player_list(player_set):
+    """ Returns a deep copy of the given player set """
     return  set(copy.deepcopy(player_set))
 
 ############## Section for creation of rounds. ###############
 ###################################################################
 
 def get_round(tournament):
+    """ return the round object given the tournament """
     return Round.objects.create(Tournament = tournament)
 
 ###################################################################
@@ -21,12 +26,16 @@ def get_round(tournament):
 ###################################################################
 
 def manage_group_creation(number_of_players):
+""" return the number of groups required for the given number of players """
     return get_number_of_groups(GroupStageCapacity.get_group_capacity(number_of_players),number_of_players)
 
 def get_number_of_groups(group_size, number_of_players):
+    """ Calculates and return the number of groups according the group size and
+        number of players """
     return math.floor(number_of_players / group_size)
 
 def get_Group(tournament):
+    """ return the group object given the tournament """
     return Group.objects.create(Tournament = tournament)
 
 def create_groups(number_of_players, tournament):
@@ -45,6 +54,8 @@ def create_groups(number_of_players, tournament):
 ###################################################################################
 
 def manage_distribute_players_into_rounds(tournament):
+    """ Distribute the players into a round  and return the list containing the
+        round """
     round = get_round(tournament)
     player_filled_round = odd_even_capacity_manager(tournament,round)
     player_filled_round_list = []
@@ -59,6 +70,8 @@ def distribute_players_into_a_round(round,player_list):
     return round
 
 def odd_even_capacity_manager(tournament,round):
+    """ Checks the number of players in a round is even or odd, and proceed to other
+        methods depending on the case """
     if tournament.participating_players.all().count() % 2 != 0:
        player_list = randomly_choose_players_from_a_set(set(tournament.participating_players.all()))
        return distribute_players_into_a_round(round,player_list)
@@ -66,6 +79,7 @@ def odd_even_capacity_manager(tournament,round):
         return distribute_players_into_a_round(round,tournament.participating_players.all())
 
 def has_round_started(round):
+    """ Return true if the round has started, false otherwise """
     return round.has_started
 
 ###################################################################################
@@ -74,21 +88,27 @@ def has_round_started(round):
 ###################################################################################
 
 def manage_distribute_players_into_groups(number_of_players,tournament):
+    """ Distribute the players into groups and return the list containing the
+        groups """
     group_list = create_groups(number_of_players=number_of_players,tournament=tournament)
     player_list = get_copy_of_player_list(tournament.participating_players.all())
     put_players_in_groups(player_list, group_list)
     return group_list
 
 def remove_players_from_player_list(player_list,choice):
+    """ remove the given choice of players from the given player list """
     player_list = set(player_list) - set(choice)
     return player_list
 
 def get_selection_of_players(player_list,group_size):
+    """ randomly selects players from the given player list accodring to the given
+        group size and return the selected choices """
     if len(player_list) >= group_size:
         choice = random.sample(player_list,group_size)
         return choice
 
 def put_players_in_groups(player_list, group_list):
+    """ place the given player list into the given groups """
     group_size = GroupStageCapacity.get_group_capacity(len(player_list))
     for group in group_list:
         choice_of_players = get_selection_of_players(player_list,group_size)
@@ -96,28 +116,36 @@ def put_players_in_groups(player_list, group_list):
         put_players_in_a_group(choice_of_players, group)
 
 def put_players_in_a_group(player_list, group):
+    """ add players in the given group """
     for player in player_list:
         group.players.add(player)
 
 ###################################################################################
 
 def check_winners_for_a_round(round):
+    """ return true if there is at least one winner for each match in a round,
+        false otherwise """
     if round.winners.all().count() == round.players.all().count() / 2:
         return True
     return False
 
 def check_winners_for_a_group(group):
+    """ return true if there is at least one winner for each match in a group,
+        false otherwise """
     for match in group.matches.all():
         if not match.has_match_been_scored(group):
             return False
     return True
 
 def manage_round_and_group_winners(round):
+    """ checks wheather the given round is a round or group, and return true if
+        there is a winner for all matches """
     if issubclass(type(round),Round):
         return check_winners_for_a_group(round)
     return check_winners_for_a_round(round)
 
 def check_if_all_rounds_and_groups_have_required_winners(tournament):
+    """ return ture if all rounds have required winners """
     group_list = Round.objects.filter(Tournament = tournament)
     for group in group_list:
         if not manage_round_and_group_winners(group):
@@ -125,6 +153,7 @@ def check_if_all_rounds_and_groups_have_required_winners(tournament):
     return True
 
 def is_match_list_empty(tournament):
+""" return ture if ther is no matches in the given tournament , false otherwise"""
     matches = tournament.get_all_matches()
     if len(matches) == 0:
         return True
@@ -132,11 +161,15 @@ def is_match_list_empty(tournament):
         return False
 
 def can_generate_matches(tournament):
+    """ return true if the tournament has no matches or if all rounds/groups have
+        required winners """
     if check_if_all_rounds_and_groups_have_required_winners(tournament) or is_match_list_empty(tournament):
         return True
     return False
 
 def create_round_or_groups(tournament):
+    """ given the tournament a round or groups will be created according to the
+        size of the players participated in the tournament """
     number_of_players = tournament.participating_players.all().count()
     Round.objects.filter(Tournament=tournament).delete()
     if GroupStageCapacity.is_allowed_for_round_creation(number_of_players):
@@ -145,5 +178,7 @@ def create_round_or_groups(tournament):
         return manage_distribute_players_into_groups(number_of_players,tournament)
 
 def match_creator_helper(tournament):
+    """ the method calls the creates round or groups if the conditions are satisifed
+        for gnerating mathces """"
     if can_generate_matches(tournament):
         return create_round_or_groups(tournament)
