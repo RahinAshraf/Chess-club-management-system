@@ -15,4 +15,4 @@ def help_switch_club(request):
     if previous_url:
         return redirect(previous_url)
     else:
-        return redirect('test')
+        return redirect('user_profile')
