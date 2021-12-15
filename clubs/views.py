@@ -25,6 +25,8 @@ def get_club_choice(request):
     """Utility function to return the name of the club the user has selected."""
     return request.session['club_choice']
 
+    #this is a comment from rahin
+
 @login_required
 def promote(request, user_id):
     return promote_demote_helper.help_promote(request=request,user_id=user_id)
