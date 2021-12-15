@@ -17,7 +17,7 @@ def help_generate_mathes(request, tournament_id):
         return redirect_to_tournaments()
 
 def process_round_or_groups(request,round_or_group_list):
-""" Checks if the given list is none, if not matches will be created and returned """
+    """ Checks if the given list is none, if not matches will be created and returned """
     if round_or_group_list is None:
         error_string = "Cant generate matches, check if results are entered for each matches!"
         process_error_message(request,error_string)

@@ -23,7 +23,7 @@ def process_success_message(request,tournament):
     message_adder.add_success_message(request=request, success_string=success_string)
 
 def process_deadline_error(request):
-""" The method constructs the message when the deadline has passed"""
+    """ The method constructs the message when the deadline has passed"""
     error_string = "It is now too late to join the tournament."
     message_adder.add_error_message(request=request, error_string=error_string)
     return help_redirect()

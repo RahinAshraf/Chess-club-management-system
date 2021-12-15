@@ -26,7 +26,7 @@ def get_round(tournament):
 ###################################################################
 
 def manage_group_creation(number_of_players):
-""" return the number of groups required for the given number of players """
+    """ return the number of groups required for the given number of players """
     return get_number_of_groups(GroupStageCapacity.get_group_capacity(number_of_players),number_of_players)
 
 def get_number_of_groups(group_size, number_of_players):
@@ -153,7 +153,7 @@ def check_if_all_rounds_and_groups_have_required_winners(tournament):
     return True
 
 def is_match_list_empty(tournament):
-""" return ture if ther is no matches in the given tournament , false otherwise"""
+    """ return ture if ther is no matches in the given tournament , false otherwise"""
     matches = tournament.get_all_matches()
     if len(matches) == 0:
         return True
@@ -179,6 +179,6 @@ def create_round_or_groups(tournament):
 
 def match_creator_helper(tournament):
     """ the method calls the creates round or groups if the conditions are satisifed
-        for gnerating mathces """"
+        for generating mathces """
     if can_generate_matches(tournament):
         return create_round_or_groups(tournament)

@@ -39,7 +39,7 @@ class ParticipateInTournament(TestCase):
         }
 
     def test_successful_assign_coorganisr(self):
-    """" Test case for successful assignment of co-organiser to a tournament when all conditions are satisifed """
+        """ Test case for successful assignment of co-organiser to a tournament when all conditions are satisifed """
         self.client.login(email=self.officer.email, password='Password123')
         self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         create_tournament = reverse('create_tournament')
@@ -106,8 +106,8 @@ class ParticipateInTournament(TestCase):
         self.assertEqual(messages_list[0].level, messages.SUCCESS)
 
     def test_unsuccessful_assign_coorganisr_from_member(self):
-        """" Test case for unsuccessful assignment of co-organiser to a tournament when
-         the subject is a member instead of an officer """
+        """ Test case for unsuccessful assignment of co-organiser to a tournament when
+        the subject is a member instead of an officer """
         self.client.login(email=self.officer.email, password='Password123')
         self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         create_tournament = reverse('create_tournament')
@@ -139,7 +139,7 @@ class ParticipateInTournament(TestCase):
         self.assertEqual(messages_list[0].level, messages.ERROR)
 
     def test_unsuccessful_assign_coorganisr_from_club_owner(self):
-        """" Test case for unsuccessful assignment of co-organiser to a tournament when
+        """ Test case for unsuccessful assignment of co-organiser to a tournament when
          the subject is a club owner instead of an officer """
         self.client.login(email=self.officer.email, password='Password123')
         self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
