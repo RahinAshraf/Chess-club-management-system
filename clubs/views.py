@@ -4,6 +4,7 @@ from django.shortcuts import redirect, render
 from django.views.generic.detail import DetailView
 from .forms import CreateNewTournamentForm, SignUpForm
 from django.contrib.auth import login, logout
+from django.conf import settings
 from django.views.generic.edit import UpdateView
 from .forms import LogInForm, UserForm, PasswordForm, CreateNewClubForm
 from django.contrib import messages
@@ -12,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.views.generic.edit import CreateView
-from .models import Match, Round, Score, Tournament, User, Club
+from .models import Match, Round, Score, Tournament, User, Club, MembershipType
 from django.core.exceptions import ImproperlyConfigured
 from django.views.generic.edit import FormView
 from django.views.generic import ListView
@@ -189,17 +190,21 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
 
 class UserListView (LoginRequiredMixin, ListView):
     """View that shows a list of all users."""
-    model = User
+
+    model = MembershipType
     template_name  = "user_list.html"
     context_object_name = "users"
-    pk_url_kwarg = 'user_id'
+    paginate_by = settings.USERS_PER_PAGE
 
     def get_context_data(self, *args, **kwargs):
         """Generate content to be displayed in the template."""
+
         current_user = self.request.user
         current_user_club = Club.objects.get(pk = self.request.session['club_choice'])
         current_user_club_name = self.request.session['club_choice']
+
         context = super().get_context_data(*args, **kwargs)
+
         context['current_user'] = current_user
         try:
             context['current_user_club_name'] = current_user_club_name
@@ -207,13 +212,19 @@ class UserListView (LoginRequiredMixin, ListView):
         except:
             return self.redirect_url('test')
         else:
-            context['users'] = current_user_club.get_all_users_with_types()
             context['type'] = current_user.get_membership_type_in_club(current_user_club_name)
         return context
+    
+    def get_queryset(self):
+        current_user_club = Club.objects.get(pk = self.request.session['club_choice'])
+        return MembershipType.objects.filter(club = current_user_club).order_by('user__last_name', 'user__first_name')
 
     def get(self, request, *args, **kwargs):
-        """Handle get   request, and redirect   to user_list if user_id invalid."""
+        """Handle get request, and redirect to user_list if user_id invalid."""
         try:
+            current_user_club_name = self.request.session['club_choice']
+            if current_user_club_name is None:
+                return self.redirect_url('test')
             return super().get(request, *args, **kwargs)
         except Http404:
             return self.redirect_url('test')

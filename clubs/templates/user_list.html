@@ -1,9 +1,12 @@
 {% extends 'base_content.html' %}
+{% load bootstrap_pagination %}
+
 {% block content %}
 <div class="container">
   <div class="row">
     <div class="col-12">
       <h1>Users</h1>
+      {% bootstrap_paginate page_obj range=6 previous_label="Previous" next_label="Next" show_first_last="true" %}
       <table class="table">
         <tr>
           {% if type == 'member' %}
@@ -21,62 +24,52 @@
             <td><b>Membership type</b></td>
           {% endif %}
         </tr>
-        {% for user, user_type in users.items %}
+        {% for userPlusType in users %}
           <tr>
-            {% if type == 'member' %}
+            {% if type == 'member' or type == 'applicant' %}
               <td>
-                <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.username }}" class="rounded-circle" >
+                <img src="{{ userPlusType.user.mini_gravatar }}" alt="Gravatar of {{ userPlusType.user.username }}" class="rounded-circle" >
               </td>
-              <td>{{ user.full_name }}</td>
-              <td><p>{{ user.public_bio }}</p></td>
-            {% elif type == 'officer' %}
-              <td>
-                <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.username }}" class="rounded-circle" >
-              </td>
-              <td>{{ user.email }}</td>
-              <td>{{ user.full_name }}</td>
-              <td><p>{{ user.public_bio }}</p></td>
-              <td><p>{{ user.personal_statement }}</p></td>
-              <td>{{ user.chess_experience_level }}</td>
-              <td>{{ user.date_joined }}</td>
-              <td>{{ user_type }}</td>
-              {% if user_type == 'applicant' %}
-                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' user.id %}" role="button">promote to member</a></td>
-              {% endif %}
+              <td>{{ userPlusType.user.full_name }}</td>
+              <td><p>{{ userPlusType.user.public_bio }}</p></td>
             {% else %}
               <td>
-                <img src="{{ user.mini_gravatar }}" alt="Gravatar of {{ user.username }}" class="rounded-circle" >
+                <img src="{{ userPlusType.user.mini_gravatar }}" alt="Gravatar of {{ userPlusType.user.username }}" class="rounded-circle" >
               </td>
-              <td>{{ user.email }}</td>
-              <td>{{ user.full_name }}</td>
-              <td><p>{{ user.public_bio }}</p></td>
-              <td><p>{{ user.personal_statement }}</p></td>
-              <td>{{ user.chess_experience_level }}</td>
-              <td>{{ user.date_joined }}</td>
-              <td>{{ user_type }}</td>
-              {% if user_type == 'applicant' %}
-                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' user.id %}" role="button">promote to member</a></td>
-              {% elif user_type == 'member' %}
-                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' user.id %}" role="button">promote to officer</a></td>
-              {% elif user_type == 'officer' %}
-              <td>
-                <div class="dropdown">
-                  <a class="nav-link" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    <button href="#" class="btn btn-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                      Demote or Transfer
-                    </button>
-                  </a>
-                  <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    <li><a class="dropdown-item" href="{% url 'demote' user.id %}">Demote to member</a></li>
-                    <li><a class="dropdown-item" href="{% url 'transfer_ownership' user.id %}">Transfer club ownership</a></li>
-                  </ul>
-                </div>
-              </td>
+              <td>{{ userPlusType.user.email }}</td>
+              <td>{{ userPlusType.user.full_name }}</td>
+              <td><p>{{ userPlusType.user.public_bio }}</p></td>
+              <td><p>{{ userPlusType.user.personal_statement }}</p></td>
+              <td>{{ userPlusType.user.chess_experience_level }}</td>
+              <td>{{ userPlusType.user.date_joined }}</td>
+              <td>{{ userPlusType.type }}</td>
+              {% if userPlusType.type == 'applicant' %}
+                <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' userPlusType.user.id %}" role="button">promote to member</a></td>
+              {% endif %}
+              {% if type != 'officer' %}
+                {% if userPlusType.type == 'member' %}
+                  <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'promote' userPlusType.user.id %}" role="button">promote to officer</a></td>
+                {% elif userPlusType.type == 'officer' %}
+                  <td>
+                    <div class="dropdown">
+                      <a class="nav-link" href="#" id="dropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <button href="#" class="btn btn-primary btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                          Demote or Transfer
+                        </button>
+                      </a>
+                      <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <li><a class="dropdown-item" href="{% url 'demote' userPlusType.user.id %}">Demote to member</a></li>
+                        <li><a class="dropdown-item" href="{% url 'transfer_ownership' userPlusType.user.id %}">Transfer club ownership</a></li>
+                      </ul>
+                    </div>
+                  </td>
+                {% endif %}
               {% endif %}
             {% endif %}
           </tr>
         {% endfor %}
       </table>
+      {% bootstrap_paginate page_obj range=6 previous_label="Previous" next_label="Next" show_first_last="true" %}
     </div>
   </div>
 </div>
