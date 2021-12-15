@@ -22,7 +22,7 @@ from .Utilities import apply_tournament,switch_user_club
 from .Utilities import withdraw_tournament,assign_organiser,generate_match_helper,score_player_helper
 
 def get_club_choice(request):
-    """Utility function to return the club name the user has selected."""
+    """Utility function to return the name of the club the user has selected."""
     return request.session['club_choice']
 
 @login_required
