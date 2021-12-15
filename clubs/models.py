@@ -2,11 +2,13 @@ from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
+from django.db.models.base import Model
 from django.db.models.constraints import UniqueConstraint
 from django.db.models.expressions import F
 from django.db.models.fields import AutoField, proxy
 from django.db.models.fields.related import ForeignKey, ManyToManyField
 from django.utils import translation
+from django.db.models.signals import m2m_changed
 from django.utils.translation import ugettext_lazy as _
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
@@ -423,8 +425,14 @@ class Tournament(models.Model):
         return tournament.co_organising_officers.all().count()
 
     def get_number_of_participating_players(self):
+        """This method gives the count of the current players in the tournament."""
         tournament = Tournament.objects.get(pk = self.id)
         return tournament.participating_players.all().count()
+
+    def get_count_of_all_players_in_tournament(self):
+        """This method gives the count of the all the players who had joined.
+        This method covers for all the users(losers) who are removed from the tournament."""
+        return Participation.objects.filter(tournament = self).count()
 
     def _validate_that_the_organising_officer_a_part_of_any_matches(self):
         """This method returns a validation error if the organising officer is in any match."""
@@ -452,6 +460,20 @@ class Tournament(models.Model):
         self._validate_that_the_co_organising_officers_a_part_of_any_matches()
         return tournament
 
+"""M2M signal for the participating players in a tournament."""
+def add_participation_for_user(sender, **kwargs):
+    tournament = kwargs['instance']
+    if kwargs['pk_set']:
+        user = kwargs['model'].objects.filter(pk__in = kwargs['pk_set'])[0]
+        if kwargs['action'] == 'post_add':
+            Participation.objects.create(user = user, tournament = tournament)
+
+m2m_changed.connect(add_participation_for_user, sender = Tournament.participating_players.through)
+
+class Participation(models.Model):
+    """This model stores the participation record for a user in a tournament."""
+    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
 
 class Round(models.Model):
     id=models.AutoField(primary_key=True)

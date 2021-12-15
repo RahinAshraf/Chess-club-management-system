@@ -25,6 +25,7 @@
           <td><b>Description</b><td>
           <td><b>Deadline To Apply</b></td>
           <td><b>Current Players</b></td>
+          <td><b>All Players</b></td>
           {% if type == 'officer' %}
             <td><a class="btn btn-primary btn-sm text-nowrap" href="{% url 'create_tournament' %}" role="button" id="new_tournament">Create a new Tournament</a></td>
           {% endif %}
@@ -36,6 +37,7 @@
           <td></td>
           <td>{{tournament.deadline_to_apply}}</td>
           <td>{{tournament.participating_players.all.count}}</td>
+          <td>{{tournament.get_count_of_all_players_in_tournament}}</td>
             {% if request.user == tournament.organising_officer  %}
             <td>
               <div class="dropdown">

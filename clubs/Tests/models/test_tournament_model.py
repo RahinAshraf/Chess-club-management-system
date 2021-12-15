@@ -1,5 +1,5 @@
 from django.test import TestCase
-from clubs.models import Club, User, MembershipType, Tournament, Match
+from clubs.models import Club, User, MembershipType, Tournament, Match, Participation
 from django.core.exceptions import ValidationError
 from ...Constants import consts
 class TournamentModelTestCase(TestCase):
@@ -69,6 +69,31 @@ class TournamentModelTestCase(TestCase):
         with self.assertRaises(ValidationError):
             self.Tournament.participating_players.add(self.user)
             self.Tournament.save()
+
+    def test_participation_for_users_in_tournaments(self):
+        self._create_test_users()
+        membership_list = MembershipType.objects.filter(club = self.club, type = consts.MEMBER)
+
+        for membership in membership_list:
+            self.Tournament.participating_players.add(membership.user)
+            self.Tournament.save()
+
+        self.assertEqual(Participation.objects.filter(tournament = self.Tournament).count(),10)
+
+    def test_participation_for_users_when_user_is_not_in_tournament_participating_player_list(self):
+        """This tests if a loser of a match in a tournament is removed from the participating list
+        the participation record for that user still remains."""
+        self.Tournament.participating_players.add(self.user)
+        self.Tournament.participating_players.add(self.user2)
+
+        # removing user 2
+        self.Tournament.participating_players.remove(self.user2)
+
+        # cheking if participation exists.
+        try:
+            Participation.objects.get(user = self.user2)
+        except:
+            self.fail('Participation object should exist.')
 
     def test_organiser_cannot_be_a_participating_player(self):
         with self.assertRaises(ValidationError):

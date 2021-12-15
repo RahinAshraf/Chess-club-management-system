@@ -14,7 +14,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.views.generic.edit import CreateView
 from .models import Match, Round, Score, Tournament, User, Club, MembershipType
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.views.generic.edit import FormView
 from django.views.generic import ListView
 from django.urls import reverse
@@ -325,11 +325,18 @@ class AllMatchListView(LoginRequiredMixin, ListView):
     def get_context_data(self, *args, **kwargs):
         """Generate content to be displayed in the template."""
         current_user = self.request.user
+        current_user_club = Club.objects.get(pk = self.request.session['club_choice'])
+        current_user_club_name = self.request.session['club_choice']
         context = super().get_context_data(*args, **kwargs)
         context['current_user'] = current_user
         tournament_id = self.kwargs['tournament_id']
         tournament = Tournament.objects.get(id=tournament_id)
         context['tournament'] = tournament
+        try:
+            context['current_user_club_name'] = current_user_club_name
+            context['current_user_club'] = current_user_club
+        except:
+            return self.redirect_url('user_profile')
         return context
 
     def redirect_url(self, url):
@@ -386,7 +393,6 @@ class TournamentListView(LoginRequiredMixin, ListView):
         current_user_club = Club.objects.get(pk = self.request.session['club_choice'])
         current_user_club_name = self.request.session['club_choice']
         tournaments = Tournament.objects.filter(club = current_user_club)
-
         context = super().get_context_data(*args, **kwargs)
         context['current_user'] = current_user
         try:
