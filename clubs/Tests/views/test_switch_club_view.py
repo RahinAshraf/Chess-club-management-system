@@ -6,7 +6,7 @@ from ...Constants import consts
 from ...models import User,MembershipType,Club
 
 class SwitchClubViewTestCase(TestCase):
-
+    """ Tests of the switch club view """
     def setUp(self):
         self.owner = User.objects.create_user(
             email="owner@example.org",
@@ -24,6 +24,7 @@ class SwitchClubViewTestCase(TestCase):
         self.client.get('user_profile/', follow = True)
 
     def test_switch_club(self):
+        """ Test case for switching clubs when the user is logged in """
         response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         response_url = reverse('user_profile')
         reponse_request = response.wsgi_request

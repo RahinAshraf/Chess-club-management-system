@@ -23,9 +23,13 @@ class SignUpViewTestCase(TestCase, LogInTester):
         }
 
     def test_sign_up_url(self):
+        """ Test case to check if the redirected url is equivalent to the
+            expected url for signing up """
         self.assertEqual(self.url,'/sign_up/')
 
     def test_get_sign_up(self):
+        """ Test case to check if the sign up form is in bound and is an instance
+            of the SignUpForm """
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'sign_up.html')
@@ -34,6 +38,8 @@ class SignUpViewTestCase(TestCase, LogInTester):
         self.assertFalse(form.is_bound)
 
     def test_unsuccesful_sign_up(self):
+        """ Test case for unsuccssfull sign up when an invalid email address
+            is entered """
         self.form_input['email'] = 'badMail'
         before_count = User.objects.count()
         response = self.client.post(self.url, self.form_input)
@@ -47,6 +53,8 @@ class SignUpViewTestCase(TestCase, LogInTester):
         self.assertFalse(self._is_logged_in())
 
     def test_succesful_sign_up(self):
+        """ Test case for succssfull sign up when all fields entered satisifed
+            the requirments """
         before_count = User.objects.count()
         response = self.client.post(self.url, self.form_input, follow=True)
         after_count = User.objects.count()

@@ -5,6 +5,8 @@ from ..Utilities import create_round_and_group_helper
 from ..Utilities import message_adder
 
 def help_generate_mathes(request, tournament_id):
+    """ Decide on wheather the given tournament should be a round or gourps
+        and proceed to other methods to generate the matches accordingly """
     tournament = Tournament.objects.get(pk = tournament_id)
     round_or_groups = create_round_and_group_helper.match_creator_helper(tournament)
     if process_round_or_groups(request,round_or_groups) == True:
@@ -15,6 +17,7 @@ def help_generate_mathes(request, tournament_id):
         return redirect_to_tournaments()
 
 def process_round_or_groups(request,round_or_group_list):
+    """ Checks if the given list is none, if not matches will be created and returned """
     if round_or_group_list is None:
         error_string = "Cant generate matches, check if results are entered for each matches!"
         process_error_message(request,error_string)
@@ -23,6 +26,7 @@ def process_round_or_groups(request,round_or_group_list):
        return create_matches_in_round_or_groups(request,round_or_group_list)
 
 def create_matches_in_round_or_groups(request,round_or_group_list):
+    """ create matches for each round or group in the given list """
     for round_or_group in round_or_group_list:
         round_or_group.createMatches()
         if round_or_group.matches.all().count() == 0: # This implies that there are no players in the tournament.
@@ -48,4 +52,5 @@ def redirect_to_tournaments():
     return redirect('tournaments')
 
 def process_error_message(request,error_string):
+    """ Display the string as message """
     message_adder.add_error_message(request=request, error_string=error_string)

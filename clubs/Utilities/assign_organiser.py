@@ -22,6 +22,7 @@ def get_subject_user_with_club(request, user_id):
 
 
 def help_assign_organiser(request, user_id, tournament_id):
+    """ The method assigns the given user as a co-organiser of the given tournament """
     try:
         subject_user_details = get_subject_user_with_club(request, user_id)
         user_club = subject_user_details['user_club']

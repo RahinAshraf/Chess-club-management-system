@@ -10,7 +10,6 @@ def create_applicant_of_club(request, club_name):
     process_success_string(request=request, club_name=club_name)
 
 def process_success_string(request,club_name):
+    """ The method constructs the message when successfully applied to a club """
     succes_string = 'You have successfully applied to' + club_name
     message_adder.add_success_message(request=request, success_string=succes_string)
-
-
