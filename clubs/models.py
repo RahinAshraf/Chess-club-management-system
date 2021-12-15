@@ -2,16 +2,10 @@ from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
-from django.db.models.base import Model
-from django.db.models.constraints import UniqueConstraint
-from django.db.models.expressions import F
-from django.db.models.fields import AutoField, proxy
-from django.db.models.fields.related import ForeignKey, ManyToManyField
-from django.utils import translation
 from django.db.models.signals import m2m_changed
 from django.utils.translation import ugettext_lazy as _
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from .Constants import consts,scores
 from libgravatar import Gravatar
 from django.utils import timezone
@@ -37,11 +31,13 @@ class UserManager(BaseUserManager):
         return user
 
     def create_user(self, email, password=None, **extra_fields):
+        """This method creates the user"""
         extra_fields.setdefault('is_staff', False)
         extra_fields.setdefault('is_superuser', False)
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email, password, **extra_fields):
+        """This method creates the super user"""
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('first_name',"Admin")
@@ -63,12 +59,14 @@ class UserManager(BaseUserManager):
 class MembershipTypeManager(models.Manager):
 
     def _is_user_a_part_of_the_same_club(self, user, club):
+        """This method tests if a user already has a membership in the club"""
         if len(MembershipType.objects.filter(user = user).filter(club = club)) >= 1:
             return True
         else:
             return False
 
     def create(self, **obj_data):
+        """This method creates the membership type"""
         type = obj_data['type']
         club = obj_data['club']
         user = obj_data['user']
@@ -84,17 +82,22 @@ class MembershipTypeManager(models.Manager):
                 return super().create(**obj_data)
 
 class ClubModelManager(models.Manager):
+    def create_membership_type_for_club_owner(self,user, club):
+        """This method creates the membership type for the club owner"""
+        MembershipType.objects.create(user = user, club = club, type = consts.CLUB_OWNER)
+    
     def create(self, **obj_data):
+        """This method creates the club"""
         user = obj_data['club_owner']
         club = super().create(**obj_data)
 
-        # Creating the membership type object
-        MembershipType.objects.create(user = user, club = club, type = consts.CLUB_OWNER)
+        # Creating the membership type object for the club owner
+        self.create_membership_type_for_club_owner(user,club)
         return club
 
 
 class scoreModelManager(models.Manager):
-    def _is_user_a_part_of_the_same_club(self, player, match, round=None):
+    def _is_user_a_part_of_the_same_match(self, player, match, round=None):
         """This function tests whether a user has a score already within a specific match.
         If yes, then it would raise a value error."""
         if round is not None and len(Score.objects.filter(player = player).filter(match = match).filter(round = round)) >= 1:
@@ -108,7 +111,7 @@ class scoreModelManager(models.Manager):
             round = obj_data['round']
         except:
             round = None
-        self._is_user_a_part_of_the_same_club(player,match,round)
+        self._is_user_a_part_of_the_same_match(player,match,round)
         score = super().create(**obj_data)
         return score
 
@@ -339,6 +342,7 @@ class Match(models.Model):
         Score.objects.create(player = self.player2, match = self, round = round, score=score)
 
     def has_match_been_scored(self,round):
+        """This method tests whether all the players have received a score for this match in this round"""
         try:
             Score.objects.get(player = self.player1, match = self, round = round)
             Score.objects.get(player = self.player2, match = self, round = round)
@@ -376,6 +380,7 @@ class Tournament(models.Model):
                     raise ValidationError('The organiser cannot participate.')
 
     def is_co_organiser_a_participating_player(self, co_organiser):
+        """This method checks if the participating player is a co organiser. If yes then it raises a Validation error."""
         tournament = Tournament.objects.filter(pk = self.id)[0]
         existing_players = tournament.participating_players.all()
         if co_organiser in existing_players:
@@ -387,12 +392,14 @@ class Tournament(models.Model):
             self.is_co_organiser_a_participating_player(co_organising_officer)
 
     def _validate_co_organiser_type(self):
+        """This checks if the membership type of the co organising officers is an officer"""
         tournament = Tournament.objects.filter(pk = self.id)[0]
         for co_organising_officer in tournament.co_organising_officers.all():
             if co_organising_officer.get_membership_type_in_club(self.club.name) != consts.OFFICER:
                 raise ValidationError('The co orginising officers must be an officer.')
 
     def _validate_organizer_type(self):
+        """This checks if the membership type of the organising officer is an officer"""
         if self.organising_officer.get_membership_type_in_club(self.club.name) != consts.OFFICER:
             raise ValidationError('The organiser must be an officer.')
 
@@ -411,7 +418,7 @@ class Tournament(models.Model):
         return associated_member_list
 
     def get_all_matches(self):
-        """Returns all matches"""
+        """Returns all matches as a list"""
         matches = []
         tournament = Tournament.objects.get(pk = self.id)
 
@@ -500,6 +507,7 @@ class Round(models.Model):
         return matches
 
     def make_a_match(self,choices):
+        """This method takes a list of two players and creates a match between them. It also adds to the match list of the round and the tournament."""
         newMatch = Match.objects.create(player1 = choices[0], player2 = choices[1], date = timezone.now())
         round=Round.objects.get(pk=self.id)
         round.matches.add(newMatch)
@@ -509,23 +517,21 @@ class Round(models.Model):
         round = Round.objects.get(pk=self.id)
         return  set(copy.deepcopy(round.players.all()))
 
-    def go_to_next_round(self,winnerList):
-        for winner in winnerList:
-            self.nextRound.players.add(winner)
-        self.remove_losers_from_tournament_participant_list(winnerList)
-
     def remove_losers_from_tournament_participant_list(self,winnerList):
+        """This takes a list of winners and removes the losers from the tournament. This method should be called only if the winners have been decided"""
         round = Round.objects.get(id = self.id)
         losers = set(round.players.all()) - set(winnerList)
         for loser in losers:
             self.Tournament.participating_players.remove(loser)
 
     def decideWinners(self):
+        """This method decides the winners and then removes the losers from the tournament."""
         round = Round.objects.get(pk=self.id)
         player_to_score_map = self.get_player_score_map()
         for k,v in player_to_score_map.items():
             self.put_winner_in_winner_list(v,k,round)
-        self.remove_losers_from_tournament_participant_list(round.winners.all())
+        if self.has_winners_been_decided():
+            self.remove_losers_from_tournament_participant_list(round.winners.all())
 
     def put_winner_in_winner_list(self, score, player, round):
         if score == scores.win_score and player not in round.winners.all():
@@ -561,6 +567,7 @@ class Group(Round):
         return True
 
     def decideWinners(self):
+        """This method decides the winners and then removes the losers from the tournament."""
         group=Group.objects.get(pk=self.id)
         if self.have_all_matches_been_marked(group):
             score_map=self.get_player_score_map()
@@ -588,6 +595,7 @@ class Group(Round):
         return player_to_score_map
 
     def get_total_score(self,score_list):
+        """This method gets the total score of the player in the group stage games."""
         total_score=0
         for score in score_list:
             total_score+=score.score
@@ -605,6 +613,7 @@ class Group(Round):
         return  set(copy.deepcopy(group.players.all()))
 
     def make_a_match(self, choices):
+        """This method takes a list of two players and creates a match between them. It also adds to the match list of the round and the tournament."""
         newMatch = Match.objects.create(player1 = choices[0], player2 = choices[1], date = timezone.now())
         group=Group.objects.get(pk=self.id)
         group.matches.add(newMatch)
