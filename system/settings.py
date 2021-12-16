@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import os
+import django_heroku
 from django.contrib.messages import constants as message_constants
 
 
@@ -127,7 +128,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
-
+STATIC_ROOT = os.path.join(BASE_DIR,'staticfiles')
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
@@ -143,3 +144,6 @@ MESSAGE_TAGS = {
 # Page lengths
 USERS_PER_PAGE = 10
 MATCHES_PER_PAGE = 10
+
+# activate django_heroku
+django_heroku.settings(locals())
