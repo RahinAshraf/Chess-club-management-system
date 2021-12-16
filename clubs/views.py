@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.views.generic.edit import CreateView
-from .models import Round, Tournament, User, Club, MembershipType
+from .models import Round, Tournament, User, Club, MembershipType, Match
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.views.generic.edit import FormView
 from django.views.generic import ListView
@@ -266,7 +266,7 @@ class UserListView (LoginRequiredMixin, ListView):
 
     def redirect_url(self, url):
         return redirect(url)
-
+    
 class OfficerListView(LoginRequiredMixin, ListView):
     """View that shows a list of all officers."""
     model = User
@@ -333,7 +333,7 @@ class MatchListView(LoginRequiredMixin, ListView):
         else:
             context['matches'] =tournament.get_all_matches()
         return context
-
+    
     def get(self, request, *args, **kwargs):
         """Handle get   request, and redirect   to user_list if user_id invalid."""
         try:
@@ -356,6 +356,7 @@ class AllMatchListView(LoginRequiredMixin, ListView):
     model =  User
     template_name  = "all_match_list.html"
     context_object_name = "users"
+    paginate_by = settings.MATCHES_PER_PAGE
     pk_url_kwarg = 'user_id'
 
     def get(self, request, *args, **kwargs):
@@ -388,6 +389,10 @@ class AllMatchListView(LoginRequiredMixin, ListView):
         except:
             return self.redirect_url('user_profile')
         return context
+    
+    def get_queryset(self, *args, **kwargs):
+        tournament = Tournament.objects.get(pk = self.kwargs['tournament_id'])
+        return tournament.matches.all().order_by('date', 'player1__first_name')
 
     def redirect_url(self, url):
         return redirect(url)
