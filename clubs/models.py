@@ -343,9 +343,13 @@ class Match(models.Model):
 
     def has_match_been_scored(self,round):
         """This method tests whether all the players have received a score for this match in this round"""
+        match = Match.objects.get(pk = self.id)
         try:
-            Score.objects.get(player = self.player1, match = self, round = round)
-            Score.objects.get(player = self.player2, match = self, round = round)
+            Score.objects.get(player = match.player1, match = match, round = round)
+        except:
+            return False
+        try:
+            Score.objects.get(player = match.player2, match = match, round = round)
             return True
         except:
             return False
@@ -566,30 +570,35 @@ class Group(Round):
                 return False
         return True
 
-    def decideWinners(self):
+    def decideWinnersForGroup(self):
         """This method decides the winners and then removes the losers from the tournament."""
         group=Group.objects.get(pk=self.id)
-        if self.have_all_matches_been_marked(group):
-            score_map=self.get_player_score_map()
+        if self.have_all_matches_been_marked(group) and group.matches.all().count()!=0:
+            score_map=self.get_player_score_map_for_group()
             self.put_two_best_players(score_map=score_map,group=group)
-            self.remove_losers_from_tournament_participant_list(group.winners.all())
+            self.remove_losers_from_tournament_participants(group.winners.all())
 
 
     def put_two_best_players(self,score_map,group):
         score_list = sorted(score_map.values())
+        highest_score = score_list[len(score_list)-1]
+        second_highest_score = score_list[len(score_list)-2] 
         for k,v in score_map.items():
-            self.add_winner(score_list,v,k,group)
+            if (v == highest_score or v == second_highest_score):
+                self.winners.add(k)
 
     def add_winner(self,score_list,score,player,group):
-        if score == score_list[len(score_list)-1] or score == score_list[len(score_list)-2]:
-            group.winners.add(player)
+        if group.winners.all.count() < 2:
+            if score == score_list[len(score_list)-1] or score == score_list[len(score_list)-2]:
+                group.winners.add(player)
 
 
-    def get_player_score_map(self):
+    def get_player_score_map_for_group(self):
         copy_player_list = self.create_copy_of_player_list()
+        group = Group.objects.get(pk = self.pk)
         player_to_score_map={}
         for player in copy_player_list:
-            score_of_player=Score.objects.filter(player=player,round=self)
+            score_of_player=Score.objects.filter(player=player,round=group)
             total_score = self.get_total_score(score_of_player)
             player_to_score_map[player]=total_score
         return player_to_score_map
@@ -619,14 +628,15 @@ class Group(Round):
         group.matches.add(newMatch)
         group.Tournament.matches.add(newMatch)
 
-    def remove_losers_from_tournament_participant_list(self,winnerList):
-        group = Group.objects.get(id = self.id)
-        losers = set(group.players.all()) - set(winnerList)
-        for loser in losers:
-            self.Tournament.participating_players.remove(loser)
-
     def has_winners_been_decided(self):
         return self.winners.all().count() == 2
+
+    def remove_losers_from_tournament_participants(self,winnerList):
+        """This takes a list of winners and removes the losers from the tournament. This method should be called only if the winners have been decided"""
+        round = Group.objects.get(id = self.id)
+        losers = set(round.players.all()) - set(winnerList)
+        for loser in losers:
+            self.Tournament.participating_players.remove(loser)
 
 class Score(models.Model):
     player = models.ForeignKey(User, on_delete=models.CASCADE, related_name='Player+')

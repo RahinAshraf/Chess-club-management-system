@@ -1,12 +1,16 @@
 from copy import error
 from django.shortcuts import render,redirect
 from ..models import Round,Group,Match, Tournament,User
-from ..Utilities import message_adder
+from ..Utilities import message_adder,get_round_or_group
 from ..Constants import scores
 
 
 def get_round(round_id):
-    return Round.objects.get(pk=round_id)
+    try:
+        round = Group.objects.get(pk=round_id)
+    except:
+        round = Round.objects.get(pk=round_id)
+    return round
 
 def get_match(match_id):
     return Match.objects.get(pk=match_id)
@@ -33,7 +37,7 @@ def render_match_list(request,round):
     """This method renders the current match list in tournament."""
     tournament = round.Tournament
     matches = tournament.matches.all()
-    rounds = Round.objects.filter(Tournament=tournament)
+    rounds = get_round_or_group.get_rounds_and_groups(tournament)
     return render(request, 'match_list.html', {'matches': matches, 'rounds':rounds})
 
 def score_player(request,round,match,player):
@@ -41,7 +45,10 @@ def score_player(request,round,match,player):
     match.put_score_for_player(round,scores.win_score,player)
     player2 = match.get_other_player(player)
     match.put_score_for_player(round,scores.lose_score,player2)
-    round.decideWinners()
+    if isinstance(round,Group):
+        round.decideWinnersForGroup()
+    else:
+        round.decideWinners()
     return process_success_in_scoring(request,round)
 
 def draw_match(request,round,match):

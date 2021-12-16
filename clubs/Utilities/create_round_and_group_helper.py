@@ -122,27 +122,23 @@ def put_players_in_a_group(player_list, group):
 
 ###################################################################################
 
-def check_winners_for_a_round(round):
-    """ return true if there is at least one winner for each match in a round,
-        false otherwise """
-    if round.winners.all().count() == round.players.all().count() / 2:
-        return True
-    return False
-
-def check_winners_for_a_group(group):
-    """ return true if there is at least one winner for each match in a group,
-        false otherwise """
-    for match in group.matches.all():
-        if not match.has_match_been_scored(group):
+def check_scores_for_round(round):
+    for match in round.matches.all():
+        if not match.has_match_been_scored(round):
             return False
     return True
+
+def check_winners_for_a_group(group):
+    if group.winners.all().count() == 2:
+        return True
+    return False
 
 def manage_round_and_group_winners(round):
     """ checks wheather the given round is a round or group, and return true if
         there is a winner for all matches """
-    if issubclass(type(round),Round):
+    if type(round) == Group:
         return check_winners_for_a_group(round)
-    return check_winners_for_a_round(round)
+    return check_scores_for_round(round)
 
 def check_if_all_rounds_and_groups_have_required_winners(tournament):
     """ return ture if all rounds have required winners """
@@ -172,6 +168,7 @@ def create_round_or_groups(tournament):
         size of the players participated in the tournament """
     number_of_players = tournament.participating_players.all().count()
     Round.objects.filter(Tournament=tournament).delete()
+    Group.objects.filter(Tournament=tournament).delete()
     if GroupStageCapacity.is_allowed_for_round_creation(number_of_players):
         return list(manage_distribute_players_into_rounds(tournament))
     else:

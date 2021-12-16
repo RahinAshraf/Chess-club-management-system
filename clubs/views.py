@@ -10,13 +10,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.views.generic.edit import CreateView
-from .models import Round, Tournament, User, Club, MembershipType, Match
+from .models import Group, Round, Tournament, User, Club, MembershipType, Match
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.views.generic.edit import FormView
 from django.views.generic import ListView
 from django.urls import reverse
 from .Utilities import promote_demote_helper,create_applicant_membership_to_clubs
-from .Utilities import apply_tournament,switch_user_club,club_tournament_helper
+from .Utilities import apply_tournament,switch_user_club,club_tournament_helper,get_round_or_group
 from .Utilities import withdraw_tournament,assign_organiser,generate_match_helper,score_player_helper
 
 def get_club_choice(request):
@@ -309,11 +309,11 @@ class OfficerListView(LoginRequiredMixin, ListView):
 
 class MatchListView(LoginRequiredMixin, ListView):
     """View that shows a list of ongoing matches."""
-    model = User
+    model = Round
     template_name  = "match_list.html"
     context_object_name = "users"
     pk_url_kwarg = 'user_id'
-
+    
     def get_context_data(self, *args, **kwargs):
         """Generate content to be displayed in the template."""
         current_user = self.request.user
@@ -322,7 +322,7 @@ class MatchListView(LoginRequiredMixin, ListView):
         tournament_id = self.kwargs['tournament_id']
         tournament = Tournament.objects.get(id=tournament_id)
         context['tournament'] = tournament
-        context['rounds'] = Round.objects.filter(Tournament = tournament)
+        context['rounds'] = get_round_or_group.get_rounds_and_groups(tournament)
         try:
             current_user_club = Club.objects.get(pk = self.request.session['club_choice'])
             current_user_club_name = self.request.session['club_choice']
