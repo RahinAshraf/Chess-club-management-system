@@ -570,7 +570,7 @@ class Group(Round):
                 return False
         return True
 
-    def decideWinnersForGroup(self):
+    def decideWinners(self):
         """This method decides the winners and then removes the losers from the tournament."""
         group=Group.objects.get(pk=self.id)
         if self.have_all_matches_been_marked(group) and group.matches.all().count()!=0:

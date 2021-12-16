@@ -45,10 +45,11 @@ def score_player(request,round,match,player):
     match.put_score_for_player(round,scores.win_score,player)
     player2 = match.get_other_player(player)
     match.put_score_for_player(round,scores.lose_score,player2)
-    if isinstance(round,Group):
-        round.decideWinnersForGroup()
-    else:
-        round.decideWinners()
+    # if isinstance(round,Group):
+    #     round.decideWinnersForGroup()
+    # else:
+    #     round.decideWinners()
+    round.decideWinners()
     return process_success_in_scoring(request,round)
 
 def draw_match(request,round,match):
