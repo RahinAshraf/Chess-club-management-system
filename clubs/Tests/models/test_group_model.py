@@ -110,16 +110,21 @@ class GroupModelTestCase(TestCase):
             MembershipType.objects.create(user = user, club = self.club, type = consts.MEMBER)
             self.tournament_of_size_68.participating_players.add(user)
 
+    def help_draw_match(self):
+        try:
+            self.match.put_score_for_player(round = self.round, score = 0.5,player=self.user) #draws are permissible for tournaments with group stages
+            self.match.put_score_for_player2(round = self.round, score = 0.5)
+        except:
+            self.fail('Scoring players for a tournament of size 32 is possible')
+
     def test_score_for_players_in_a_tournament_of_size_of_32(self):
         self.create_and_join_32_users_for_tournament()
         self.tournament_of_size_32.participating_players.add(self.user)
         self.tournament_of_size_32.participating_players.add(self.user2)
-        self.match.put_score_for_player(round = self.round, score = 0.5,player=self.user) #draws are permissible for tournaments with group stages
-        self.match.put_score_for_player2(round = self.round, score = 0.5)
+        self.help_draw_match()
 
     def test_score_for_players_in_a_tournament_of_size_of_68(self):
         self.create_and_join_68_users_for_tournament()
         self.tournament_of_size_68.participating_players.add(self.user)
         self.tournament_of_size_68.participating_players.add(self.user2)
-        self.match.put_score_for_player(round = self.round, score = 0.5,player=self.user) #draws are permissible for tournaments with group stages
-        self.match.put_score_for_player2(round = self.round, score = 0.5)
+        self.help_draw_match()
