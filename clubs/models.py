@@ -280,7 +280,7 @@ class Club(models.Model):
 
 
 class MembershipType(models.Model):
-    id = models.BigIntegerField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete = models.CASCADE,)
     club = models.ForeignKey(Club, on_delete=models.CASCADE,)
     type = models.CharField(blank = False, max_length = 20, validators=[validate_membership_type])
