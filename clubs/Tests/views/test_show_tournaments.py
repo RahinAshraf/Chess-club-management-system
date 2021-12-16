@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from django.urls import reverse
 from ...Constants import consts
 class ShowTournamentTestCase(TestCase):
-
+    """ Unit tests of showing tournaments """
     def setUp(self):
 
         self.user = User.objects.create_user(
@@ -15,9 +15,9 @@ class ShowTournamentTestCase(TestCase):
                     public_bio = 'Hello!!',
                     chess_experience_level = 3,
                     personal_statement = 'I want to play chess!!')
-        self.club = Club.objects.create(club_owner = self.user,name = "Club1.0", location = 'location1', 
+        self.club = Club.objects.create(club_owner = self.user,name = "Club1.0", location = 'location1',
                                         mission_statement = 'We want to allow all to play free chess')
-        
+
 
         self.officer = User.objects.create_user(
                     first_name = 'Test',
@@ -31,11 +31,15 @@ class ShowTournamentTestCase(TestCase):
         self.membership = MembershipType.objects.create(user = self.officer, club = self.club, type = consts.OFFICER)
 
         self.url = reverse('tournaments')
-    
+
     def test_tournament_list_url(self):
+        """ Test case to check if the redirected url is equivalent to the
+        expected url for showing a list of tournaments """
         self.assertEqual(self.url,'/tournaments/')
 
     def test_get_tournament_list(self):
+        """" Test case for successfully displaying the tournament list when requird
+             conditions are satisifed """
         self.client.login(email=self.officer.email, password='Password123')
         self._create_test_tournaments(15-1)
         response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
@@ -48,6 +52,7 @@ class ShowTournamentTestCase(TestCase):
             self.assertContains(response, f'Description{tournament_id}')
 
     def _create_test_tournaments(self, tournament_count=10):
+        """ Creates given number of tournaments, the default is 10 """
         for tournament_id in range(tournament_count):
             self.Tournament = Tournament(club = self.club, name=f'Tournament{tournament_id}',
                                                     description = f'Description{tournament_id}',

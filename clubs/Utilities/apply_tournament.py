@@ -9,9 +9,11 @@ def apply_for_tournament(request,tournament):
     process_success_message(request=request, tournament=tournament)
 
 def help_redirect():
+    """ redirect the url to 'tournaments' """
     return redirect(REDIRECT_URL)
 
 def get_tournament_object(tournament_id):
+    """ return the tournament related to the given tournament id"""
     return Tournament.objects.get(id = tournament_id)
 
 def process_success_message(request,tournament):
@@ -21,11 +23,13 @@ def process_success_message(request,tournament):
     message_adder.add_success_message(request=request, success_string=success_string)
 
 def process_deadline_error(request):
+    """ The method constructs the message when the deadline has passed"""
     error_string = "It is now too late to join the tournament."
     message_adder.add_error_message(request=request, error_string=error_string)
     return help_redirect()
 
 def process_capacity_error(request):
+    """ The method constructs the message when there is an capacity error """
     error_string = "The tournament is full, try join some other tournaments."
     message_adder.add_error_message(request=request, error_string=error_string)
     return help_redirect()
@@ -45,5 +49,3 @@ def manage_tournament_application(request,tournament_id):
     apply_for_tournament(request=request, tournament=tournament)
 
     return help_redirect()
-
-

@@ -6,6 +6,7 @@ from ...Constants import consts
 from django.contrib import messages
 
 class GenerateMatches(TestCase):
+    """ Unit tests of generating new matches """
     def setUp(self):
         self.user = User.objects.create_user(
                     first_name = 'Test',
@@ -38,6 +39,8 @@ class GenerateMatches(TestCase):
         }
 
     def test_successful_generate_matches(self):
+        """" Test case for successful creation of a matches when all
+         conditions are satisifed """
         tournament = self._create_tournament()
         users = self._get_test_users()
 
@@ -71,6 +74,8 @@ class GenerateMatches(TestCase):
         self.assertEqual(messages_list[0].level, messages.SUCCESS)
 
     def test_unsuccessful_generate_matches_due_to_zero_players(self):
+        """" Test case for unsuccessful creation of a matches when there are
+         0 players participated in the tournament """
         tournament = self._create_tournament()
 
         self.client.login(email=self.officer.email, password='Password123')
@@ -87,6 +92,7 @@ class GenerateMatches(TestCase):
         self.assertEqual(messages_list[0].level, messages.ERROR)
 
     def _create_tournament(self):
+        """ The method helps to create a tournament """
         self.client.login(email=self.officer.email, password='Password123')
         self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         create_tournament = reverse('create_tournament')
@@ -97,6 +103,7 @@ class GenerateMatches(TestCase):
         return Tournament.objects.get(club = self.club)
 
     def _get_test_users(self, user_count=10):
+        """ Create test users, the default number of testing users is 10 """
         users = []
         for user_id in range(user_count):
             user = User.objects.create_user(email=f'user{user_id}@test.org',

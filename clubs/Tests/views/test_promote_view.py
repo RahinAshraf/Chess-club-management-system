@@ -5,7 +5,7 @@ from ...Constants import consts
 from ...models import User,MembershipType,Club
 
 class PromoteViewTestCase(TestCase):
-
+    """ Unit tests of promoting users within a club """
     def setUp(self):
         self.officer = User.objects.create_user(
             email="officer@example.org",
@@ -46,10 +46,14 @@ class PromoteViewTestCase(TestCase):
 
 
     def test_promote_url(self):
+        """ Test case to check if the redirected url is equivalent to the
+        expected url for promoting a user within club """
         self.assertEqual(self.url, "/promote/" + str(self.applicant.pk) + "/")
 
 
     def test_promote_successful(self):
+        """" Test case for successfully promoting a user in club when all
+         conditions are satisifed """
         applicantType = MembershipType.objects.get(user = self.applicant, club = self.club).type
         self.assertEqual(applicantType, consts.APPLICANT)
         response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
@@ -67,6 +71,7 @@ class PromoteViewTestCase(TestCase):
 
 
     def test_promote_nonexisting_user(self):
+        """" Test case for attempting to demote a non-existing user in club """
         userLength = len(User.objects.all())
         self.url = reverse("promote",kwargs={"user_id": userLength+1})
         response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
@@ -81,6 +86,8 @@ class PromoteViewTestCase(TestCase):
 
 
     def test_cannot_promote(self):
+        """" Test case for unsuccussfully promoting a user when the request user
+             is a member instead of a officier """
         self.client.login(email=self.applicant.email, password='Pass123')
         response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         response = self.client.get(self.url, follow=True)
@@ -94,6 +101,7 @@ class PromoteViewTestCase(TestCase):
 
 
     def test_promote_member(self):
+        
         applicantMembership = MembershipType.objects.get(user = self.applicant, club = self.club)
         applicantMembership.type = "member"
         applicantMembership.save()

@@ -105,18 +105,21 @@ def process_transfer_ownership_user_existence(request, user_id):
         process_current_user_transfer_ownership_rights(request,user_id)
 
 def process_promotion_of_subject_user(request,membership):
+    """This method changes the membership type by promoting it and processes success situation."""
     new_type = promote_user[membership.type]
     membership.type = new_type
     membership.save()
     process_success_promote_message(request=request, new_type=new_type)
 
 def process_demotion_of_subject_user(request, membership):
+    """This method changes the membership type by demoting it and processes success situation."""
     new_type = demote_user[membership.type]
     membership.type = new_type
     membership.save()
     process_success_demote_message(request=request, new_type=new_type)
 
 def process_transfership_of_current_user(user,owner_membership, membership, user_club):
+    """This method changes the membership type by changing the membership type of an owner to an officer."""
     new_type = demote_user[owner_membership.type]
     owner_membership.type = new_type
     owner_membership.save()
@@ -128,6 +131,7 @@ def process_transfership_of_current_user(user,owner_membership, membership, user
     club.save()
 
 def process_current_user_promoting_access_rights(request,user_id):
+    """This method is a manager for the promotion of users."""
     subject_user_details = get_promote_and_demote_subject_user_with_club(request, user_id)
     user_club = subject_user_details['user_club']
     membership = subject_user_details['membership']
@@ -141,6 +145,7 @@ def process_current_user_promoting_access_rights(request,user_id):
         process_failed_promote_message(request=request)
 
 def process_current_user_demoting_access_rights(request, user_id):
+    """This method is a manager for the demotion of users"""
     subject_user_details = get_promote_and_demote_subject_user_with_club(request, user_id)
     user_club = subject_user_details['user_club']
     membership = subject_user_details['membership']
@@ -154,6 +159,7 @@ def process_current_user_demoting_access_rights(request, user_id):
 
 
 def process_current_user_transfer_ownership_rights(request, user_id):
+    """This method is a manager for the transfer of ownership"""
     subject_user_details = get_promote_and_demote_subject_user_with_club(request, user_id)
     user_club = subject_user_details['user_club']
     membership = subject_user_details['membership']

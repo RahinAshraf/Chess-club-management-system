@@ -1,12 +1,9 @@
 """Forms for the clubs app."""
 from django import forms
 from django.core.validators import RegexValidator
-from django.core.exceptions import ValidationError
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import check_password
 from django.contrib.auth import login
-from django.db.models import fields
-from django.forms import widgets
 from .models import Tournament, User
 from .models import MembershipType, Club,Score
 from .Constants import consts
@@ -55,21 +52,26 @@ class SignUpForm(forms.ModelForm):
         )
         return user
 
-    def make_applicant(self,user):
-        MembershipType.objects.create(user = user, type = consts.APPLICANT)
-
 class LogInForm(forms.Form):
     """Form enabling registered users to log in."""
 
     email = forms.EmailField(label="Email")
     password = forms.CharField(label="Password", widget=forms.PasswordInput())
 
+    def get_email(self):
+        """This method returns the email from the form"""
+        return self.cleaned_data.get('email')
+
+    def get_password(self):
+        """This method returns the password"""
+        return self.cleaned_data.get('password')
+
     def get_user(self):
         """Returns authenticated user if possible."""
         user = None
         if self.is_valid():
-            email = self.cleaned_data.get('email')
-            password = self.cleaned_data.get('password')
+            email = self.get_email() #self.cleaned_data.get('email')
+            password = self.get_password()# self.cleaned_data.get('password')
             user = authenticate(email=email, password=password)
         
         return user
@@ -100,20 +102,37 @@ class PasswordForm(forms.Form):
     )
     password_confirmation = forms.CharField(label='Password confirmation', widget=forms.PasswordInput())
 
+    def save_user(self,user):
+        """This method saves the user"""
+        user.save()
+
+    def set_password_for_user(self, new_password, user):
+        """This method sets the new password for the user."""
+        user.set_password(new_password)
+
+    def get_old_password(self):
+        """This method returns the old password for the form."""
+        return self.cleaned_data.get('password')
+
+    def get_new_password(self):
+        """This method returns the new password from a form."""
+        return self.cleaned_data.get('new_password')
+
+    def login_user(self,request):
+        """This method logs in the user."""
+        login(request,request.user)
+
     def process_valid_data(self,request):
-        if self.is_valid():
-            password = self.cleaned_data.get('password')
-            if check_password(password, request.user.password):
-                new_password = self.cleaned_data.get('new_password')
-                request.user.set_password(new_password)
-                request.user.save()
-                login(request, request.user)
-                return True
-            else:
-                return False
+        """This method processes valid form data."""
+        password = self.get_old_password()                
+        if check_password(password, request.user.password):
+            new_password = self.get_new_password()                                 
+            self.set_password_for_user(new_password,request.user)    
+            self.save_user(request.user)     
+            self.login_user(request)
+            return True
         else:
             return False
-
 
 class CreateNewClubForm(forms.ModelForm):
 
@@ -122,17 +141,33 @@ class CreateNewClubForm(forms.ModelForm):
         model = Club
         fields = ['name','location','mission_statement']
 
+    def set_club_owner(self,club_owner,club):
+        """This method sets the club owner of the club."""
+        club.club_owner = club_owner
+
+    def save_club(self, club):
+        """This method saves a club"""
+        club.save()
+
+    def get_club(self):
+        """This method returns the club if the form. This should be called if form is valid."""
+        return self.save(commit=False)
+
+    def set_membership_type_for_club_owner(self,user,club):
+        """This method sets the membership for a club owner in a club."""
+        MembershipType.objects.create(user = user, club = club, type = consts.CLUB_OWNER)
+
     def process_valid_form(self,user):
         """This method processes valid form data. It creates the necessary models and relationships
            when valid data is sent."""
         if self.is_valid():
-            club = self.save(commit=False)
-            club.club_owner = user
-            club.save()
+            club = self.get_club()                    
+            self.set_club_owner(user,club)            
+            self.save_club(club)                      
             # Create the new membership type. 
             # The membership is being manually created because the club models' save method is called instead of create 
             # which does not automatically create the new membership.
-            MembershipType.objects.create(user = user, club = club, type = consts.CLUB_OWNER)
+            self.set_membership_type_for_club_owner(user,club)#MembershipType.objects.create(user = user, club = club, type = consts.CLUB_OWNER)
 
 class CreateNewTournamentForm(forms.ModelForm):
 
@@ -144,18 +179,42 @@ class CreateNewTournamentForm(forms.ModelForm):
     capacity = forms.IntegerField(min_value=2, max_value=96,required=True,
                                 error_messages={'required':'Please enter a capacity',
                                 'max_value':'The max value is 96','min_value':'The min value is 2'})
-        
+
+    def get_tournament(self):
+        """This method gives the tournament. This method should be called when the form is valid."""
+        return self.save(commit=False)
+    
+    def set_organising_officer(self, tournament, organising_officer):
+        """This method sets the organising officer for the tournament"""
+        tournament.organising_officer = organising_officer
+
+    def set_club(self,tournament,club):
+        """This method sets the club for the tournament"""
+        tournament.club = club
+
+    def get_capacity(self):
+        """This method gives the tournament capacity"""
+        return self.cleaned_data.get('capacity')
+
+    def set_capacity(self,tournament,capacity):
+        """This method sets the capacity for the tournament"""
+        tournament.capacity = capacity
+
+    def save_tournament(self,tournament):
+        """This method saves the tournament"""
+        return tournament.save()
+
     def process_form_with_organiser_data(self,current_user_club,organising_officer):
         """This method takes in the current club of the organiser and the organiser
            to create a valid instance of Tournament object. If successfully created, it will
            return the result of save being called on Tournament."""
         if self.is_valid():
-            Tournament = self.save(commit=False)
-            Tournament.organising_officer = organising_officer
-            Tournament.club = current_user_club
-            capacity = self.cleaned_data.get('capacity')
-            Tournament.capacity = capacity
-            return Tournament.save()
+            Tournament = self.get_tournament()
+            self.set_organising_officer(Tournament,organising_officer)
+            self.set_club(Tournament,current_user_club)
+            capacity = self.get_capacity()
+            self.set_capacity(Tournament,capacity)
+            return self.save_tournament(Tournament) 
         else:
             return None
 

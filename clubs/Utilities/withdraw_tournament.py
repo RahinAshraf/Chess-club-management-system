@@ -9,12 +9,13 @@ def withdraw_from_tournament(request,tournament):
     process_success_message(request=request,tournament=tournament)
 
 def process_success_message(request,tournament):
-    """This method constructs the success string and add the message."""
+    """This method constructs the success string and adds the message."""
     tournament_name = tournament.name
     success_string = "You are now removed from the tournament: " + tournament_name
     message_adder.add_success_message(request=request, success_string=success_string)
 
 def process_error_message(request):
+    """This method constructs the error string and adds the message."""
     error_string = "You can not withdraw from the tournament, it's too late!"
     message_adder.add_error_message(request=request, error_string=error_string)
 
