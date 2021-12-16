@@ -2,29 +2,17 @@ from django.test import TestCase
 from clubs.models import Club, User, MembershipType, Tournament, Match, Participation
 from django.core.exceptions import ValidationError
 from ...Constants import consts
+
 class TournamentModelTestCase(TestCase):
+    """ Unit tests of the tournament model """
+
+    fixtures = ['clubs/Tests/fixtures/default_user.json','clubs/Tests/fixtures/default_set_up_of_clubs_and_tournament_with_owners_and_officers.json']
 
     def setUp(self):
-
-        self.user = User.objects.create_user(
-                    first_name = 'Test',
-                    last_name = 'Case',
-                    email = 'testCase@example.com',
-                    password = 'Password123',
-                    public_bio = 'Hello!!',
-                    chess_experience_level = 3,
-                    personal_statement = 'I want to play chess!!')
-        self.club = Club.objects.create(club_owner = self.user,name = "Club1.0", location = 'location1', 
-                                        mission_statement = 'We want to allow all to play free chess')
-        
-        self.user2 = User.objects.create_user(
-                    first_name = 'Test',
-                    last_name = 'Case',
-                    email = 'testCase2@example.com',
-                    password = 'Password123',
-                    public_bio = 'Hello!!',
-                    chess_experience_level = 3,
-                    personal_statement = 'I want to play chess!!')
+        self.user = User.objects.get(first_name = "Russell")
+        self.user2 = User.objects.get(first_name = 'Valentina')
+        self.club = Club.objects.get(pk = 'Kerbal Chess Club')
+        self.Tournament = Tournament.objects.get(pk = 1)
 
         self.officer = User.objects.create_user(
                     first_name = 'Test',
@@ -36,17 +24,9 @@ class TournamentModelTestCase(TestCase):
                     personal_statement = 'I want to play chess!!')
 
         self.membership = MembershipType.objects.create(user = self.officer, club = self.club, type = consts.OFFICER)
-
         self.membership2 = MembershipType.objects.create(user = self.user2, club = self.club, type = consts.OFFICER)
+        self.membership3 = MembershipType.objects.create(user = self.user, club = self.club, type = consts.CLUB_OWNER)
 
-        self.Tournament = Tournament(club = self.club, name='Tournament1',
-                                                    description = 'Description1',
-                                                    capacity = '12',
-                                                    organising_officer = self.officer,
-                                                    deadline_to_apply = '2021-12-05 23:59')
-        self.Tournament.save()
-        
-    
     def test_valid_tournament(self):
         try:
             self.Tournament.full_clean()
@@ -97,7 +77,7 @@ class TournamentModelTestCase(TestCase):
 
     def test_organiser_cannot_be_a_participating_player(self):
         with self.assertRaises(ValidationError):
-            self.Tournament.participating_players.add(self.officer)
+            self.Tournament.participating_players.add(self.user2)
             self.Tournament.save()
 
     def test_organizer_must_be_an_officer(self):
@@ -129,7 +109,7 @@ class TournamentModelTestCase(TestCase):
                     personal_statement = 'I want to play chess!!')
 
        MembershipType.objects.create(club = self.club, user = co_organiser, type = consts.OFFICER)
-       self.Tournament.co_organising_officers.add(co_organiser) 
+       self.Tournament.co_organising_officers.add(co_organiser)
        self.Tournament.participating_players.add(co_organiser)
        self._assert_invalid_tournament()
 
@@ -144,7 +124,7 @@ class TournamentModelTestCase(TestCase):
                     personal_statement = 'I want to play chess!!')
 
         MembershipType.objects.create(club = self.club, user = co_organiser, type = consts.MEMBER)
-        self.Tournament.co_organising_officers.add(co_organiser) 
+        self.Tournament.co_organising_officers.add(co_organiser)
         self._assert_invalid_tournament()
 
     def test_organiser_cannot_be_a_part_of_any_match(self):
@@ -163,7 +143,7 @@ class TournamentModelTestCase(TestCase):
                     personal_statement = 'I want to play chess!!')
 
         MembershipType.objects.create(club = self.club, user = co_organiser, type = consts.MEMBER)
-        self.Tournament.co_organising_officers.add(co_organiser) 
+        self.Tournament.co_organising_officers.add(co_organiser)
         match = Match.objects.create(date = '2021-12-17', player1 = co_organiser, player2 = self.user2)
         self.Tournament.matches.add(match)
         self._assert_invalid_tournament()

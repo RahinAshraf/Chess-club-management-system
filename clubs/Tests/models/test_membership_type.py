@@ -5,23 +5,17 @@ from clubs.models import MembershipType
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from ...Constants import consts
-class MembershipModelTestCase(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(
-                    first_name = 'Test',
-                    last_name = 'Case',
-                    email = 'testCase@example.com',
-                    password = 'Password123',
-                    public_bio = 'Hello!!',
-                    chess_experience_level = 3,
-                    personal_statement = 'I want to play chess!!')
-        
-        self.club = Club.objects.create(club_owner = self.user,name = "Club1", location = 'location1', 
-                                        mission_statement = 'We want to allow all to play free chess')
-        
 
-        self.membership_type = MembershipType.objects.get(user = self.user, club = self.club ,type = consts.CLUB_OWNER)
-        
+class MembershipModelTestCase(TestCase):
+    """ Unit tests of the membership model """
+
+    fixtures = ['clubs/Tests/fixtures/default_user.json','clubs/Tests/fixtures/default_set_up_of_clubs_and_tournament_with_owners_and_officers.json']
+
+    def setUp(self):
+        self.user = User.objects.get(first_name = "Russell")
+        self.club = Club.objects.get(pk = 'Kerbal Chess Club')
+        self.membership_type = MembershipType.objects.create(user = self.user, club = self.club ,type = consts.CLUB_OWNER)
+
     def _assert_memberhip_type_is_invalid(self):
         with self.assertRaises(ValidationError):
             self.membership_type.full_clean()
@@ -45,7 +39,7 @@ class MembershipModelTestCase(TestCase):
     def test_type_cannot_be_empty(self):
         self.membership_type.type = ''
         self._assert_memberhip_type_is_invalid()
-    
+
     def test_user_cannot_hold_multiple_types(self):
         """ This just tests that a user cannot hold multiple memberships simulatneously """
         with self.assertRaises(ValueError):
@@ -80,7 +74,7 @@ class MembershipModelTestCase(TestCase):
                     chess_experience_level = 3,
                     personal_statement = 'I want to play chess!!')
         new_user_membership_type = self.membership_type = MembershipType.objects.create(user = new_user, club = self.club, type = consts.APPLICANT)
-        
+
         # changing the new membership type to club owner when one already exists
         new_user_membership_type.type = consts.CLUB_OWNER
         with self.assertRaises(ValidationError):
@@ -88,14 +82,13 @@ class MembershipModelTestCase(TestCase):
 
     def test_user_can_be_a_member_of_many_clubs(self):
         try:
-            club3 = Club.objects.create(club_owner = self.user,name = "Club3", location = 'location1', 
+            club3 = Club.objects.create(club_owner = self.user,name = "Club3", location = 'location1',
                                         mission_statement = 'We want to allow all to play free chess')
         except :
             self.fail('Test membership type should be valid')
-        
+
         try:
-            club4 = Club.objects.create(club_owner = self.user,name = "Club4", location = 'location1', 
+            club4 = Club.objects.create(club_owner = self.user,name = "Club4", location = 'location1',
                                     mission_statement = 'We want to allow all to play free chess')
         except :
             self.fail('Test membership type should be valid')
- 

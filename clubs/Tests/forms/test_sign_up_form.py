@@ -7,7 +7,6 @@ from ...models import MembershipType, User
 from ...Constants import consts
 class SignUpFormTestCase(TestCase):
     """Unit tests of the sign up form."""
-
     def setUp(self):
         self.form_input = {
             'first_name': 'Jane',
