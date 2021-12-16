@@ -1,10 +1,10 @@
 from django.core.management.base import BaseCommand, CommandError
 from faker import Faker
 from clubs.models import User, Club, MembershipType, Tournament, Match, Round, Score, Group
-from ...Constants import consts
+from ...Constants import consts, scores
 import random
 from datetime import date, timedelta
-from ...Utilities import generate_match_helper, score_player_helper, create_round_and_group_helper
+from ...Utilities import generate_match_helper, create_round_and_group_helper
 
 class UniqueFaker(Faker):
     """A Faker that keeps track of returned values so it can ensure uniqueness."""
@@ -63,8 +63,11 @@ class Command(BaseCommand):
 
         for tournament in Tournament.objects.all():
             self._create_matches(tournament)
-            self._generate_scores(tournament)
         print('Match seeding complete')
+        
+        for round in Round.objects.all():
+            self._create_scores(round)
+        print('Score seeding complete')
 
     def _create_base_users(self):
         User.objects.create_user(
@@ -289,9 +292,23 @@ class Command(BaseCommand):
     def _create_matches(self, tournament):
         round_or_groups = create_round_and_group_helper.match_creator_helper(tournament)
         self.process_round_or_groups(round_or_groups)
-         
-    def _generate_scores(self, tournament):
-        pass
+        
+    def _create_scores(self, round):
+        for match in round.get_all_matches():
+            result = random.randint(1, 5)
+            if result == 1:
+                player1 = match.player1
+                player2 = match.player2
+                match.put_score_for_player(round,scores.draw_score,player1)
+                match.put_score_for_player(round,scores.draw_score,player2)
+                round.decideWinners()
+            else:
+                player = random.choice(match.get_all_players())
+                match.put_score_for_player(round,scores.win_score,player)
+                player2 = match.get_other_player(player)
+                match.put_score_for_player(round,scores.lose_score,player2)
+                round.decideWinners()
+                
 
     def _email(self, first_name, last_name):
         email = f'{first_name}.{last_name}@example.org'
@@ -315,4 +332,3 @@ class Command(BaseCommand):
             if round_or_group.matches.all().count() == 0: # This implies that there are no players in the tournament.
                 return False
         return True
-
