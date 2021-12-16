@@ -1,3 +1,4 @@
+from ...Constants import consts
 from django.db.utils import IntegrityError
 from django.test import TestCase
 from clubs.models import Club, MembershipType, User
@@ -11,6 +12,8 @@ class ClubModelTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.get(first_name = "Russell")
         self.club = Club.objects.get(pk = 'Kerbal Chess Club')
+        self.officer = User.objects.get(first_name = 'Valentina')
+        MembershipType.objects.create(user = self.officer,club=self.club,type=consts.OFFICER)
         self.membershipType = MembershipType.objects.create(user = self.user, club = self.club, type = 'club_owner')
 
     def _assert_club_is_invalid(self):
@@ -32,7 +35,17 @@ class ClubModelTestCase(TestCase):
 
     def test_get_all_users(self):
         user = self.club.get_all_users()
-        self.assertEqual(user[0], self.user) # Using [0] because the test has only one user for now
+        self.assertEqual(user[0], self.officer) # Using [0] because the test has only one user for now
+
+    def test_get_all_officers_excluding_the_user(self):
+        officers_excluding_the_only_officer_in_the_club = self.club.get_all_officers_with_types(self.officer)
+        self.assertEqual(len(officers_excluding_the_only_officer_in_the_club),0)
+    
+    def test_get_all_users_with_types(self):
+        all_users_with_types = self.club.get_all_users_with_types()
+        self.assertEqual(len(all_users_with_types),2)
+        self.assertEqual(all_users_with_types[self.officer],consts.OFFICER)
+        self.assertEqual(all_users_with_types[self.user],consts.CLUB_OWNER)
 
     def test_club_has_right_owner(self):
         self.assertEqual(self.user, self.membershipType.user)
