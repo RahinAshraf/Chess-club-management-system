@@ -1,14 +1,14 @@
 from django.core.management.base import BaseCommand, CommandError
 from faker import Faker
-from clubs.models import User, Club, MembershipType, Tournament
-from ...Constants import consts
+from clubs.models import User, Club, MembershipType, Tournament, Match, Round, Score, Group
+from ...Constants import consts, scores
 import random
 from datetime import date, timedelta
+from ...Utilities import generate_match_helper, create_round_and_group_helper
 
 class UniqueFaker(Faker):
-    """
-    A Faker that keeps track of returned values so it can ensure uniqueness.
-    """
+    """A Faker that keeps track of returned values so it can ensure uniqueness."""
+
     def __init__(self, *args, **kwargs):
         super(UniqueFaker, self).__init__(*args, **kwargs)
         self._values = {None}
@@ -22,7 +22,7 @@ class UniqueFaker(Faker):
 
 class Command(BaseCommand):
     PASSWORD = "Password123"
-    USER_COUNT = 100
+    USER_COUNT = 75
     CLUB_COUNT = 10
 
     def __init__(self):
@@ -30,6 +30,8 @@ class Command(BaseCommand):
         self.faker = UniqueFaker('en_GB')
 
     def handle(self, *args, **options):
+        """ Creates the hard coded users and clubs first, and then the randomized one."""
+
         self._create_base_users()
         self._create_base_club()
         self._create_base_types()
@@ -49,6 +51,7 @@ class Command(BaseCommand):
         print('User seeding complete')
 
         self._create_base_tournaments()
+        self._create_clubs_for_groups()
 
         for club in Club.objects.all():
             club_count = 0
@@ -57,6 +60,14 @@ class Command(BaseCommand):
                 self._create_tournament(club)
             club_count += 1
         print('Tournament seeding complete')
+
+        for tournament in Tournament.objects.all():
+            self._create_matches(tournament)
+        print('Match seeding complete')
+        
+        for round in Round.objects.all():
+            self._create_scores(round)
+        print('Score seeding complete')
 
     def _create_base_users(self):
         User.objects.create_user(
@@ -160,7 +171,6 @@ class Command(BaseCommand):
             deadline_to_apply = date.today() + timedelta(days=1)
         )
 
-
         tournament2 = Tournament.objects.create(
             club = club,
             name = f'{self.faker.last_name()} Chess Tournament',
@@ -221,7 +231,7 @@ class Command(BaseCommand):
 
     def _create_tournament(self, club):
         officers = [k for k,v in club.get_all_users_with_types().items() if v == consts.OFFICER]
-        if officers is not None :
+        if officers:
             organizer = random.choice(officers)
             tournament = Tournament.objects.create(
                     club = club,
@@ -235,6 +245,90 @@ class Command(BaseCommand):
             for i in range (0, random.randint(1, len(users))) :
                 tournament.participating_players.add(random.choice(users))
 
+    def _create_clubs_for_groups(self):
+        """ Creates clubs in which a tournament is organised with a sufficient number of participants
+            for groups to be created."""
+
+        self._create_club_for_group(16)
+        self._create_club_for_group(32)
+        self._create_club_for_group(90)
+
+    def _create_club_for_group(self, nbr_users):
+        club_owner = self._create_user(False)
+        club = Club.objects.create(
+            club_owner = club_owner,
+            name = f'{self.faker.last_name()} Chess Club',
+            location = self.faker.city(),
+            mission_statement = self.faker.text(max_nb_chars=200)
+        )
+
+        for i in range(nbr_users):
+            user = self._create_user(False)
+            if random.randint(1, 10) < 3 :
+                type = consts.OFFICER
+            else :
+                type = consts.MEMBER
+
+            MembershipType.objects.create(
+                user = user,
+                club = club,
+                type = type
+            )
+
+        officers = [k for k,v in club.get_all_users_with_types().items() if v == consts.OFFICER]
+        organizer = random.choice(officers)
+        tournament = Tournament.objects.create(
+                club = club,
+                name = f'{self.faker.last_name()} Chess Tournament',
+                description = self.faker.text(max_nb_chars=100),
+                capacity = nbr_users + 10,
+                organising_officer = organizer,
+                deadline_to_apply = date.today() - timedelta(days=random.randint(1, 10))
+        )
+        users = club.get_all_users()
+        for user in users:
+            tournament.participating_players.add(user)
+            
+    def _create_matches(self, tournament):
+        round_or_groups = create_round_and_group_helper.match_creator_helper(tournament)
+        self.process_round_or_groups(round_or_groups)
+        
+    def _create_scores(self, round):
+        for match in round.get_all_matches():
+            result = random.randint(1, 5)
+            if result == 1:
+                player1 = match.player1
+                player2 = match.player2
+                match.put_score_for_player(round,scores.draw_score,player1)
+                match.put_score_for_player(round,scores.draw_score,player2)
+                round.decideWinners()
+            else:
+                player = random.choice(match.get_all_players())
+                match.put_score_for_player(round,scores.win_score,player)
+                player2 = match.get_other_player(player)
+                match.put_score_for_player(round,scores.lose_score,player2)
+                round.decideWinners()
+                
+
     def _email(self, first_name, last_name):
         email = f'{first_name}.{last_name}@example.org'
         return email
+
+    def process_round_or_groups(self, round_or_group_list):
+        if round_or_group_list is None:
+            return False
+        else:
+           return self.create_matches_in_round_or_groups(round_or_group_list)
+
+    def process_round_or_groups(self, round_or_group_list):
+        if round_or_group_list is None:
+            return False
+        else:
+           return self.create_matches_in_round_or_groups(round_or_group_list)
+
+    def create_matches_in_round_or_groups(self, round_or_group_list):
+        for round_or_group in round_or_group_list:
+            round_or_group.createMatches()
+            if round_or_group.matches.all().count() == 0: # This implies that there are no players in the tournament.
+                return False
+        return True
