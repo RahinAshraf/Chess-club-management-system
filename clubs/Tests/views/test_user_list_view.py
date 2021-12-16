@@ -8,7 +8,7 @@ from clubs.Tests.helpers import reverse_with_next
 class UserListTest(TestCase):
     """ Unit tests of user list view """
 
-    fixtures = ['clubs/Tests/fixtures/default_user.json']
+    fixtures = ['clubs/Tests/fixtures/default_user.json','clubs/Tests/fixtures/default_set_up_of_clubs_and_tournament_with_owners_and_officers.json']
 
     def setUp(self):
         self.url = reverse('user_list')

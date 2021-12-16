@@ -6,28 +6,12 @@ from ...Constants import consts
 
 class CreateNewTournament(TestCase):
     """ Unit tests of creating new tournaments """
+    fixtures = ['clubs/Tests/fixtures/default_user.json','clubs/Tests/fixtures/default_set_up_of_clubs_and_tournament_with_owners_and_officers.json']
     def setUp(self):
-        self.user = User.objects.create_user(
-                    first_name = 'Test',
-                    last_name = 'Case',
-                    email = 'testCase@example.com',
-                    password = 'Password123',
-                    public_bio = 'Hello!!',
-                    chess_experience_level = 3,
-                    personal_statement = 'I want to play chess!!')
-        self.club = Club.objects.create(club_owner = self.user,name = "Club1.0", location = 'location1',
-                                        mission_statement = 'We want to allow all to play free chess')
-
-
-        self.officer = User.objects.create_user(
-                    first_name = 'Test',
-                    last_name = 'Case',
-                    email = 'testCaseOfficer@example.com',
-                    password = 'Password123',
-                    public_bio = 'Hello!!',
-                    chess_experience_level = 3,
-                    personal_statement = 'I want to play chess!!')
-
+        self.user = User.objects.get(first_name = "Russell")
+        self.officer = User.objects.get(first_name = "Valentina")
+        self.club = Club.objects.get(pk="Kerbal Chess Club")
+        MembershipType.objects.create(user = self.user, club = self.club, type = consts.CLUB_OWNER)
         self.membership = MembershipType.objects.create(user = self.officer, club = self.club, type = consts.OFFICER)
 
         self.url = reverse('create_tournament')
@@ -66,3 +50,9 @@ class CreateNewTournament(TestCase):
         response = self.client.post(self.url, self.form_input, follow=True)
         after_count = Tournament.objects.filter(club = self.club).count()
         self.assertEqual(after_count, before_count)
+
+    def test_redirect_url_when_creating_tournament_without_club_choice(self):
+        self.client.login(email=self.officer.email, password='Password123')
+        response = self.client.get(self.url, follow=True)
+        response_url = reverse('user_profile')
+        self.assertRedirects(response, response_url, status_code=302, target_status_code=200)

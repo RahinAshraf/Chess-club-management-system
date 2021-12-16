@@ -1,0 +1,56 @@
+[
+    {
+      "model": "clubs.user",
+      "pk": 5,
+      "fields": {
+        "first_name": "Russell",
+        "last_name": "Scott",
+        "email": "Russell.Scott@example.org",
+        "public_bio": "Autem facere possimus atque pariatur non. Labore illo reiciendis tempora nemo.\nPlaceat dolores quod quidem soluta. Explicabo repellat ut nulla. Et nesciunt voluptate laudantium et.\nFuga culpa voluptate dignissimos incidunt ut. Quis est blanditiis vitae expedita. Quo eveniet error distinctio voluptatem sapiente incidunt.\nUllam hic temporibus ipsum quibusdam dignissimos cumque. Cupiditate deserunt temporibus.\nConsequatur dolorem nulla voluptates nihil. Velit impedit vel odio.",
+        "personal_statement": "Accusantium quas cumque reprehenderit. Optio excepturi quibusdam modi ea totam velit. A excepturi fugit mollitia iusto praesentium nulla. Odio accusantium vitae quibusdam.",
+        "chess_experience_level": "5",
+        "password": "pbkdf2_sha256$260000$r2SwqKgI1JbxT8el2yJmDS$hA9nOBw4ezjUfMnbqD5sOX3+gDm6GQ5EhBzJQlyqmGA=",
+        "is_active": true
+      }
+    },
+    {
+        "model":"clubs.club",
+        "pk":"Kerbal Chess Club",
+        "fields":{
+            "name": "Kerbal Chess Club",
+            "location": "London",
+            "mission_statement": "Id fugiat dicta esse pariatur provident.Neque sapiente exercitationem necessitatibus eos magnam debitis rerum. Pariatur dolorem illum saepe beatae repellendus ipsum.",
+            "club_owner":5
+        }
+    },
+    {
+      "model":"clubs.user",
+      "pk": 3,
+      "fields": {
+        "first_name": "Valentina",
+        "last_name": "Kerman",
+        "email": "val@example.org",
+        "public_bio": "Reprehenderit ad nisi odit magnam a ipsa. Expedita iure adipisci laudantium est dolores.\nCorrupti provident at inventore. Sint eveniet voluptate nesciunt cum. Sapiente ab sunt repudiandae est.\nModi aspernatur eum alias ex eos corrupti.\nLaboriosam atque velit quod eaque minima. Fugiat quidem fugit itaque deleniti facilis.\nCorporis eius dignissimos. Rem veritatis tenetur odit expedita cumque. Quam ratione rem necessitatibus expedita dolorem.",
+        "personal_statement": "Laboriosam accusamus repudiandae eius nisi quia cum. Fuga officia illo vero.\nMolestias sunt ab corporis accusamus.",
+        "chess_experience_level": "5",
+        "password": "pbkdf2_sha256$260000$4L2k9VDtYPDY17TFiHY3gB$nJXr5TV+xzZLQhXTsThg6xWgvyGmQ5KfpRNMsXISc3s=",
+        "is_active": true
+      }
+    },
+    {
+      "model":"clubs.tournament",
+      "pk":1,
+      "fields":{
+        "id":1,
+        "club":"Kerbal Chess Club",
+        "name":"Taylor Chess Tournament",
+        "matches":[],
+        "description":"Ipsum doloribus doloremque facere harum animi. Dolores repellendus quo maiores non qui ipsum.\nEx velit culpa ipsam vitae facere magnam illo. Eaque aliquid cumque a rem vitae.",
+        "capacity":15,
+        "organising_officer":3,
+        "co_organising_officers":[],
+        "participating_players":[],
+        "deadline_to_apply":"2021-12-16 00:00"
+      }
+    }
+  ]

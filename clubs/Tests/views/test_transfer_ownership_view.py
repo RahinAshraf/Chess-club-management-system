@@ -6,31 +6,16 @@ from ...models import User,MembershipType,Club
 
 class transferOwnershipViewTestCase(TestCase):
     """ Unit tests of transfer club owner's ownership """
+    fixtures = ['clubs/Tests/fixtures/default_user.json','clubs/Tests/fixtures/default_set_up_of_clubs_and_tournament_with_owners_and_officers.json']
     def setUp(self):
-        self.club_owner = User.objects.create_user(
-            email="clubOwner@example.org",
-            password="Pass123",
-            first_name="clubOwnerFirst",
-            last_name="clubOwnerLast",
-            public_bio="club_owner",
-            chess_experience_level=1,
-            personal_statement="clubOwnerPersonal",
-        )
-        self.officer = User.objects.create_user(
-            email="officer@example.org",
-            password="Pass123",
-            first_name="officerFirst",
-            last_name="officerLast",
-            public_bio="officer",
-            chess_experience_level=1,
-            personal_statement="officerPersonal",
-        )
-        self.club = Club.objects.create(club_owner = self.club_owner,name = "Club1", location = 'location1',
-        mission_statement = 'We want to allow all to play free chess')
+        self.club_owner = User.objects.get(first_name = "Russell")
+        self.officer = User.objects.get(first_name = 'Valentina')
+        self.club = Club.objects.get(pk = 'Kerbal Chess Club')
 
+        MembershipType.objects.create(user=self.club_owner, type=consts.CLUB_OWNER,club=self.club)
         MembershipType.objects.create(user=self.officer,type=consts.OFFICER, club=self.club)
 
-        self.client.login(email=self.club_owner.email, password='Pass123')
+        self.client.login(email=self.club_owner.email, password='Password123')
 
         self.url = reverse("transfer_ownership",kwargs={"user_id":self.officer.pk})
 
@@ -96,3 +81,9 @@ class transferOwnershipViewTestCase(TestCase):
         messages_list = list(response.context["messages"])
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.ERROR)
+
+    def test_redirect_url_when_transfering_ownership_without_club_choice(self):
+        self.client.login(email=self.officer.email, password='Password123')
+        response = self.client.get(self.url, follow=True)
+        response_url = reverse('user_profile')
+        self.assertRedirects(response, response_url, status_code=302, target_status_code=200)

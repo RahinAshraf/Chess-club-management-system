@@ -5,29 +5,12 @@ from django.urls import reverse
 from ...Constants import consts
 class ShowTournamentTestCase(TestCase):
     """ Unit tests of showing tournaments """
+    fixtures = ['clubs/Tests/fixtures/default_user.json','clubs/Tests/fixtures/default_set_up_of_clubs_and_tournament_with_owners_and_officers.json']
     def setUp(self):
-
-        self.user = User.objects.create_user(
-                    first_name = 'Test',
-                    last_name = 'Case',
-                    email = 'testCase@example.com',
-                    password = 'Password123',
-                    public_bio = 'Hello!!',
-                    chess_experience_level = 3,
-                    personal_statement = 'I want to play chess!!')
-        self.club = Club.objects.create(club_owner = self.user,name = "Club1.0", location = 'location1',
-                                        mission_statement = 'We want to allow all to play free chess')
-
-
-        self.officer = User.objects.create_user(
-                    first_name = 'Test',
-                    last_name = 'Case',
-                    email = 'testCaseOfficer@example.com',
-                    password = 'Password123',
-                    public_bio = 'Hello!!',
-                    chess_experience_level = 3,
-                    personal_statement = 'I want to play chess!!')
-
+        self.user = User.objects.get(first_name = "Russell")
+        self.officer = User.objects.get(first_name = "Valentina")
+        self.club = Club.objects.get(pk="Kerbal Chess Club")
+        MembershipType.objects.create(user = self.user, club = self.club, type = consts.CLUB_OWNER)
         self.membership = MembershipType.objects.create(user = self.officer, club = self.club, type = consts.OFFICER)
 
         self.url = reverse('tournaments')
@@ -37,16 +20,22 @@ class ShowTournamentTestCase(TestCase):
         expected url for showing a list of tournaments """
         self.assertEqual(self.url,'/tournaments/')
 
+    def test_tournament_redirect_url_when_club_is_not_chosen(self):
+        self.client.login(email=self.user.email, password='Password123')
+        response = self.client.get('/tournaments/', follow=True)
+        response_url = reverse('user_profile')
+        self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
+
     def test_get_tournament_list(self):
         """" Test case for successfully displaying the tournament list when requird
              conditions are satisifed """
         self.client.login(email=self.officer.email, password='Password123')
-        self._create_test_tournaments(15-1)
+        self._create_test_tournaments(15)
         response = self.client.get('/switch_club/', {'club_choice' : self.club.name}, follow = True)
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'tournament_list.html')
-        self.assertEqual(len(response.context['tournaments']), 14)
+        self.assertEqual(len(response.context['tournaments']), 16)
         for tournament_id in range(15-1):
             self.assertContains(response, f'Tournament{tournament_id}')
             self.assertContains(response, f'Description{tournament_id}')

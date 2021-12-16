@@ -7,28 +7,12 @@ from django.contrib import messages
 
 class ParticipateInTournament(TestCase):
     """ Unit tests of the assign co-organiser methods """
+    fixtures = ['clubs/Tests/fixtures/default_user.json','clubs/Tests/fixtures/default_set_up_of_clubs_and_tournament_with_owners_and_officers.json']
     def setUp(self):
-        self.user = User.objects.create_user(
-                    first_name = 'Test',
-                    last_name = 'Case',
-                    email = 'testCase@example.com',
-                    password = 'Password123',
-                    public_bio = 'Hello!!',
-                    chess_experience_level = 3,
-                    personal_statement = 'I want to play chess!!')
-
-        self.club = Club.objects.create(club_owner = self.user,name = "Club1.0", location = 'location1',
-                                        mission_statement = 'We want to allow all to play free chess')
-
-        self.officer = User.objects.create_user(
-                    first_name = 'JohnDoe',
-                    last_name = 'Case',
-                    email = 'testCaseOfficer@example.com',
-                    password = 'Password123',
-                    public_bio = 'Hello!!',
-                    chess_experience_level = 3,
-                    personal_statement = 'I want to play chess!!')
-
+        self.user = User.objects.get(first_name = "Russell")
+        self.officer = User.objects.get(first_name = "Valentina")
+        self.club = Club.objects.get(pk="Kerbal Chess Club")
+        MembershipType.objects.create(user = self.user, club = self.club, type = consts.CLUB_OWNER)
         self.membership = MembershipType.objects.create(user = self.officer, club = self.club, type = consts.OFFICER)
 
         self.form_input = {
@@ -47,7 +31,7 @@ class ParticipateInTournament(TestCase):
         response = self.client.post(create_tournament, self.form_input, follow=True)
         response_url = reverse('tournaments')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
-        tournament = Tournament.objects.get(club = self.club)
+        tournament = Tournament.objects.filter(club = self.club)[1]
 
         test_officer = User.objects.create_user(
                     first_name = 'officer',
@@ -79,7 +63,7 @@ class ParticipateInTournament(TestCase):
         response = self.client.post(create_tournament, self.form_input, follow=True)
         response_url = reverse('tournaments')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
-        tournament = Tournament.objects.get(club = self.club)
+        tournament = Tournament.objects.filter(club = self.club)[1]
 
         test_officer = User.objects.create_user(
                     first_name = 'officer',
@@ -105,7 +89,7 @@ class ParticipateInTournament(TestCase):
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.SUCCESS)
 
-    def test_unsuccessful_assign_coorganisr_from_member(self):
+    def test_unsuccessful_assign_coorganisor_from_member(self):
         """ Test case for unsuccessful assignment of co-organiser to a tournament when
         the subject is a member instead of an officer """
         self.client.login(email=self.officer.email, password='Password123')
@@ -115,7 +99,7 @@ class ParticipateInTournament(TestCase):
         response = self.client.post(create_tournament, self.form_input, follow=True)
         response_url = reverse('tournaments')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
-        tournament = Tournament.objects.get(club = self.club)
+        tournament = Tournament.objects.filter(club = self.club)[1]
 
         test_member = User.objects.create_user(
                     first_name = 'member',
@@ -148,7 +132,7 @@ class ParticipateInTournament(TestCase):
         response = self.client.post(create_tournament, self.form_input, follow=True)
         response_url = reverse('tournaments')
         self.assertRedirects(response, response_url, status_code=302, target_status_code=200)
-        tournament = Tournament.objects.get(club = self.club)
+        tournament = Tournament.objects.filter(club = self.club)[1]
 
         before_count = tournament.get_number_of_co_organisers()
         response_url = reverse("assign_coorganiser", kwargs={"tournament_id":tournament.pk, "user_id":self.user.pk})
@@ -159,3 +143,11 @@ class ParticipateInTournament(TestCase):
         messages_list = list(response.context["messages"])
         self.assertEqual(len(messages_list), 1)
         self.assertEqual(messages_list[0].level, messages.ERROR)
+
+    def test_redirect_url_when_assigning_co_organisor_in_tournament_without_club_choice(self):
+        self.client.login(email=self.officer.email, password='Password123')
+        tournament = Tournament.objects.filter(club = self.club)[0]
+        url = reverse("assign_coorganiser", kwargs={"tournament_id":tournament.pk, "user_id":self.user.pk})
+        response = self.client.get(url, follow=True)
+        response_url = reverse('user_profile')
+        self.assertRedirects(response, response_url, status_code=302, target_status_code=200)

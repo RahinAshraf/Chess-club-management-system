@@ -8,7 +8,6 @@ def officer(value,id):
     participants = tournament.participating_players.all()
  
     for i in participants:
-        print(i)
         if i == value:
             return True
       
