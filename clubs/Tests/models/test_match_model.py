@@ -1,5 +1,5 @@
 from django.test import TestCase
-from clubs.models import Club, User, MembershipType, Match
+from clubs.models import Club, User, Match
 from django.core.exceptions import ValidationError
 from ...Constants import consts
 
@@ -28,3 +28,9 @@ class TestCaseForMatchModel(TestCase):
         to the same user."""
         self.match.player2 = self.user
         self._assert_invalid_match()
+
+    def test_get_other_player_with_1st_player(self):
+        self.assertEqual(self.match.get_other_player(self.user),self.user2)
+
+    def test_get_other_player_with_2nd_player(self):
+        self.assertEqual(self.match.get_other_player(self.user2),self.user)
