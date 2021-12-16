@@ -1,7 +1,4 @@
-import copy
-from math import log
 from django.shortcuts import redirect, render
-from django.views.generic.detail import DetailView
 from .forms import CreateNewTournamentForm, SignUpForm
 from django.contrib.auth import login, logout
 from django.conf import settings
@@ -13,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404
 from django.views.generic.edit import CreateView
-from .models import Match, Round, Score, Tournament, User, Club, MembershipType
+from .models import Round, Tournament, User, Club, MembershipType
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
 from django.views.generic.edit import FormView
 from django.views.generic import ListView
@@ -26,7 +23,6 @@ def get_club_choice(request):
     """Utility function to return the name of the club the user has selected."""
     return request.session['club_choice']
 
-    #this is a comment from rahin
 
 @login_required
 def promote(request, user_id):
@@ -238,9 +234,6 @@ class UserListView (LoginRequiredMixin, ListView):
         """Generate content to be displayed in the template."""
 
         current_user = self.request.user
-        # current_user_club = Club.objects.get(pk = self.request.session['club_choice'])
-        # current_user_club_name = self.request.session['club_choice']
-
         context = super().get_context_data(*args, **kwargs)
 
         context['current_user'] = current_user
@@ -284,8 +277,6 @@ class OfficerListView(LoginRequiredMixin, ListView):
     def get_context_data(self, *args, **kwargs):
         """Generate content to be displayed in the template."""
         current_user = self.request.user
-        # current_user_club = Club.objects.get(pk = self.request.session['club_choice'])
-        # current_user_club_name = self.request.session['club_choice']
         context = super().get_context_data(*args, **kwargs)
         context['current_user'] = current_user
         tournament_id = self.kwargs['tournament_id']
@@ -326,8 +317,6 @@ class MatchListView(LoginRequiredMixin, ListView):
     def get_context_data(self, *args, **kwargs):
         """Generate content to be displayed in the template."""
         current_user = self.request.user
-        # current_user_club = Club.objects.get(pk = self.request.session['club_choice'])
-        # current_user_club_name = self.request.session['club_choice']
         context = super().get_context_data(*args, **kwargs)
         context['current_user'] = current_user
         tournament_id = self.kwargs['tournament_id']
@@ -386,8 +375,6 @@ class AllMatchListView(LoginRequiredMixin, ListView):
     def get_context_data(self, *args, **kwargs):
         """Generate content to be displayed in the template."""
         current_user = self.request.user
-        # current_user_club = Club.objects.get(pk = self.request.session['club_choice'])
-        # current_user_club_name = self.request.session['club_choice']
         context = super().get_context_data(*args, **kwargs)
         context['current_user'] = current_user
         tournament_id = self.kwargs['tournament_id']
@@ -454,9 +441,6 @@ class TournamentListView(LoginRequiredMixin, ListView):
         """Generate content to be displayed in the template."""
 
         current_user = self.request.user
-        # current_user_club = Club.objects.get(pk = self.request.session['club_choice'])
-        # current_user_club_name = self.request.session['club_choice']
-        # tournaments = Tournament.objects.filter(club = current_user_club)
         context = super().get_context_data(*args, **kwargs)
         context['current_user'] = current_user
         try:
