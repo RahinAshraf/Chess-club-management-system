@@ -6,6 +6,7 @@ from http import HTTPStatus
 
 class LogInFormTestCase(TestCase):
     """Unit tests of the log in form."""
+
     def setUp(self):
         self.form_input = {'email': 'janedoe@example.com', 'password': 'Password123'}
 
@@ -40,6 +41,3 @@ class LogInFormTestCase(TestCase):
         form = LogInForm(data=self.form_input)
         response = self.client.post("/log_in/", data = {'email': 'janedoe@example.com', 'password':'pwd'})
         self.assertEqual(response.status_code, HTTPStatus.OK)
-
-        
-    

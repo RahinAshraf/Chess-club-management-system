@@ -4,23 +4,17 @@ from django.test import TestCase
 from clubs.forms import CreateNewClubForm
 from http import HTTPStatus
 from clubs.models import Club, User
-
-
 from clubs.views import password
 
 class CreateNewClubFormTestCase(TestCase):
     """Unit tests of the log in form."""
+
+    fixtures = ['clubs/Tests/fixtures/default_user.json','clubs/Tests/fixtures/default_set_up_of_clubs_and_tournament_with_owners_and_officers.json']
+
     def setUp(self):
-        self.user = User.objects.create_user(
-                    first_name = 'Test',
-                    last_name = 'Case',
-                    email = 'testCase2@example.com',
-                    password = 'Password123',
-                    public_bio = 'Hello!!',
-                    chess_experience_level = 3,
-                    personal_statement = 'I want to play chess!!')
-        self.club = Club.objects.create(club_owner =self.user,name = "Club1", location = 'location1', 
-        mission_statement = 'We want to allow all to play free chess')
+        self.user = User.objects.get(first_name = "Russell")
+        self.club = Club.objects.get(pk = 'Kerbal Chess Club')
+
         self.form_input= {
             "name":"Club23",
             "location": "locations1",
@@ -54,5 +48,3 @@ class CreateNewClubFormTestCase(TestCase):
         form.save()
         club_owner = Club.objects.get(pk = self.form_input['name']).club_owner
         self.assertEqual(club_owner,self.user)
-
-    
