@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import os
-import django_heroku
 from django.contrib.messages import constants as message_constants
 
 
@@ -146,4 +145,6 @@ USERS_PER_PAGE = 10
 MATCHES_PER_PAGE = 10
 
 # activate django_heroku
-django_heroku.settings(locals())
+if '/app' in os.environ['HOME']:
+    import django_heroku
+    django_heroku.settings(locals())
