@@ -17,14 +17,15 @@ class Migration(migrations.Migration):
             name='club',
             field=models.OneToOneField(null=True, on_delete=django.db.models.deletion.CASCADE, to='clubs.club'),
         ),
-        migrations.AddField(
-            model_name='membershiptype',
-            name='id',
-            field=models.AutoField(primary_key=True, serialize=False),
-        ),
         migrations.AlterField(
             model_name='membershiptype',
             name='user',
             field=models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL),
         ),
+        migrations.AddField(
+            model_name='membershiptype',
+            name='id',
+            field=models.AutoField(primary_key=True, serialize=False),
+        ),
+
     ]
