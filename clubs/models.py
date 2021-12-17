@@ -85,7 +85,7 @@ class ClubModelManager(models.Manager):
     def create_membership_type_for_club_owner(self,user, club):
         """This method creates the membership type for the club owner"""
         MembershipType.objects.create(user = user, club = club, type = consts.CLUB_OWNER)
-    
+
     def create(self, **obj_data):
         """This method creates the club"""
         user = obj_data['club_owner']
@@ -280,7 +280,6 @@ class Club(models.Model):
 
 
 class MembershipType(models.Model):
-    id = models.AutoField(primary_key=True)
     user = models.ForeignKey(User, on_delete = models.CASCADE,)
     club = models.ForeignKey(Club, on_delete=models.CASCADE,)
     type = models.CharField(blank = False, max_length = 20, validators=[validate_membership_type])
@@ -583,7 +582,7 @@ class Group(Round):
     def put_two_best_players(self,score_map,group):
         score_list = sorted(score_map.values())
         highest_score = score_list[len(score_list)-1]
-        second_highest_score = score_list[len(score_list)-2] 
+        second_highest_score = score_list[len(score_list)-2]
         for k,v in score_map.items():
             if (v == highest_score or v == second_highest_score):
                 self.winners.add(k)
