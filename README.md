@@ -36,7 +36,7 @@ Migrate the database:
 $ python3 manage.py migrate
 ```
 
-Seed the development database with:
+Seed the development database with (If a unique constraint occurs, unseed and then seed once again):
 
 ```
 $ python3 manage.py seed
